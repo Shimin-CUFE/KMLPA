@@ -86,6 +86,7 @@ class LabelPropagator:
             print("\nLabel propagation round: " + str(index) + ".\n")
             self.do_a_propagation()
         print("end, next draw")
+        # draw plot through networkx
         node_color = [float(self.labels[node]) for node in self.nodes]
         nx.draw_networkx(self.graph, node_color=node_color)
         plt.show()
