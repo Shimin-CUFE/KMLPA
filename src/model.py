@@ -22,13 +22,13 @@ class LabelPropagator:
         """
         self.args = args
         self.seeding = args.seed
+        self.rounds = args.rounds
+        self.weight_setup(args.weighting)
         self.graph = graph
         self.nodes = [node for node in graph.nodes()]
-        self.rounds = args.rounds
         self.labels = {node: node for node in self.nodes}
         self.label_count = len(set(self.labels.values()))
         self.flag = True
-        self.weight_setup(args.weighting)
 
     def weight_setup(self, weighting):
         """
@@ -44,7 +44,7 @@ class LabelPropagator:
         else:
             self.weights = overlap_generator(normalized_overlap, self.graph)
 
-    def make_a_pick(self, source, neighbors):
+    def pick_neighbor(self, source, neighbors):
         """
         Choosing a neighbor from a propagation source node.
         :param source: Source node.
@@ -53,12 +53,18 @@ class LabelPropagator:
         scores = {}
         for neighbor in neighbors:
             neighbor_label = self.labels[neighbor]
-            if neighbor_label in scores.keys():
-                scores[neighbor_label] = scores[neighbor_label] + self.weights[(neighbor, source)]
-            else:
-                scores[neighbor_label] = self.weights[(neighbor, source)]
-        top = [key for key, val in scores.items() if val == max(scores.values())]
-        return random.sample(top, 1)[0]
+            scores[neighbor_label] = scores.setdefault(neighbor_label, 0.0) + self.weights[(neighbor, source)]
+            # if neighbor_label in scores.keys():
+            #     scores[neighbor_label] = scores[neighbor_label] + self.weights[(neighbor, source)]
+            # else:
+            #     scores[neighbor_label] = self.weights[(neighbor, source)]
+        scores_items = list(scores.items())
+        scores_items.sort(key=lambda x: x[1], reverse=True)
+
+        # if there is not only one label with maximum count then choose one randomly
+        labels = [(k, v) for k, v in scores_items if v == scores_items[0][1]]
+        label = random.sample(labels, 1)[0][0]
+        return label
 
     def do_a_propagation(self):
         """
@@ -67,16 +73,15 @@ class LabelPropagator:
         random.seed(self.seeding)
         random.shuffle(self.nodes)
         for node in tqdm(self.nodes):
-            neighbors = nx.neighbors(self.graph, node)
-            pick = self.make_a_pick(node, neighbors)
-            self.labels[node] = pick
+            neighbors = self.graph.neighbors(node)
+            self.labels[node] = self.pick_neighbor(node, neighbors)
         current_label_count = len(set(self.labels.values()))
         if self.label_count == current_label_count:
             self.flag = False
         else:
             self.label_count = current_label_count
 
-    def do_a_series_of_propagations(self):
+    def start_label_propagation(self):
         """
         Doing propagations until convergence or reaching time budget.
         """
@@ -88,7 +93,7 @@ class LabelPropagator:
         print("end, next draw")
         # draw plot through networkx
         node_color = [float(self.labels[node]) for node in self.nodes]
-        nx.draw_networkx(self.graph, node_color=node_color)
+        nx.draw_networkx(self.graph, node_color=node_color, node_size=150, alpha=1)
         plt.show()
         # print("Modularity is: " + str(round(modularity(self.labels, self.graph), 3)) + ".\n")
         json_dumper(self.labels, self.args.assignment_output)

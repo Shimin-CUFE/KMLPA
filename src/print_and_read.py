@@ -27,6 +27,8 @@ def graph_reader(input_path):
     """
     edges = pd.read_csv(input_path)
     graph = nx.from_edgelist(edges.values.tolist())
+    for node, data in graph.nodes(True):
+        data['label'] = node
     return graph
 
 

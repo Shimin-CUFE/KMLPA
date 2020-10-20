@@ -101,7 +101,6 @@ if __name__ == '__main__':
     g = read_graph_from_file(project_path + '\\data\\d.data')
     lpa(g)
     print_graph_info(g)
-
     node_color = [float(g.nodes[v]['label']) for v in g]
     labels = dict([(node, node) for node, data in g.nodes(True)])
     nx.draw_networkx(g, node_color=node_color)

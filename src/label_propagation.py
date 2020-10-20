@@ -12,7 +12,7 @@ def create_and_run_model(args):
     """
     graph = graph_reader(args.input)
     model = LabelPropagator(graph, args)
-    model.do_a_series_of_propagations()
+    model.start_label_propagation()
 
 
 if __name__ == "__main__":

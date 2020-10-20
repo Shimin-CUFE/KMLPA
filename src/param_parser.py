@@ -31,8 +31,8 @@ def parameter_parser():
 
     parser.add_argument("--rounds",
                         type=int,
-                        default=30,
-                        help="Number of iterations. Default is 30.")
+                        default=10,
+                        help="Number of iterations. Default is 10.")
 
     parser.add_argument("--seed",
                         type=int,
