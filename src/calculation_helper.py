@@ -1,7 +1,6 @@
 """Tools to calculate edge scores."""
 
 import networkx as nx
-from tqdm import tqdm
 
 
 def normalized_overlap(g, node_1, node_2):
@@ -58,4 +57,4 @@ def overlap_generator(metric, graph):
     """
     edges = [(edge[0], edge[1]) for edge in nx.edges(graph)]
     edges = edges + [(edge[1], edge[0]) for edge in nx.edges(graph)]
-    return {edge: metric(graph, edge[0], edge[1]) for edge in tqdm(edges)}
+    return {edge: metric(graph, edge[0], edge[1]) for edge in edges}

@@ -6,6 +6,8 @@ from tqdm import tqdm
 from calculation_helper import overlap, unit, min_norm, normalized_overlap, overlap_generator
 from print_and_read import json_dumper
 import matplotlib.pyplot as plt
+
+
 # need library scipy
 
 
@@ -21,14 +23,14 @@ class LabelPropagator:
         :param args: Arguments object.
         """
         self.args = args
-        self.seeding = args.seed
-        self.rounds = args.rounds
-        self.weight_setup(args.weighting)
         self.graph = graph
         self.nodes = [node for node in graph.nodes()]
         self.labels = {node: node for node in self.nodes}
         self.label_count = len(set(self.labels.values()))
-        self.flag = True
+        self.seeding = args.seed
+        self.rounds = args.rounds
+        self.weights = overlap_generator(normalized_overlap, self.graph)
+        self.weight_setup(args.weighting)
 
     def weight_setup(self, weighting):
         """
@@ -42,7 +44,17 @@ class LabelPropagator:
         elif weighting == "min_norm":
             self.weights = overlap_generator(min_norm, self.graph)
         else:
-            self.weights = overlap_generator(normalized_overlap, self.graph)
+            pass
+
+    def do_single_propagation(self):
+        """
+        Doing a propagation round.
+        """
+        # random.seed(self.seeding)
+        # random.shuffle(self.nodes)
+        for node in tqdm(self.nodes):
+            neighbors = self.graph.neighbors(node)
+            self.labels[node] = self.pick_neighbor(node, neighbors)
 
     def pick_neighbor(self, source, neighbors):
         """
@@ -54,10 +66,6 @@ class LabelPropagator:
         for neighbor in neighbors:
             neighbor_label = self.labels[neighbor]
             scores[neighbor_label] = scores.setdefault(neighbor_label, 0.0) + self.weights[(neighbor, source)]
-            # if neighbor_label in scores.keys():
-            #     scores[neighbor_label] = scores[neighbor_label] + self.weights[(neighbor, source)]
-            # else:
-            #     scores[neighbor_label] = self.weights[(neighbor, source)]
         scores_items = list(scores.items())
         scores_items.sort(key=lambda x: x[1], reverse=True)
 
@@ -66,34 +74,45 @@ class LabelPropagator:
         label = random.sample(labels, 1)[0][0]
         return label
 
-    def do_a_propagation(self):
-        """
-        Doing a propagation round.
-        """
-        random.seed(self.seeding)
-        random.shuffle(self.nodes)
-        for node in tqdm(self.nodes):
-            neighbors = self.graph.neighbors(node)
-            self.labels[node] = self.pick_neighbor(node, neighbors)
-        current_label_count = len(set(self.labels.values()))
-        if self.label_count == current_label_count:
-            self.flag = False
-        else:
-            self.label_count = current_label_count
+    def estimate_stop_cond(self):
+        for node in self.nodes:
+            count = {}
+            for neighbor in self.graph.neighbors(node):
+                neighbor_label = self.labels[neighbor]
+                count[neighbor_label] = count.setdefault(neighbor_label, 0.0) + self.weights[(neighbor, node)]
+            # find out labels with maximum count
+            count_items = list(count.items())
+            count_items.sort(key=lambda x: x[1], reverse=True)
+            # if there is not only one label with maximum count then choose one randomly
+            labels = [k for k, v in count_items if v == count_items[0][1]]
+            if self.labels[node] not in labels:
+                return False
+        return True
 
     def start_label_propagation(self):
         """
         Doing propagations until convergence or reaching time budget.
         """
+        layout = nx.spring_layout(self.graph)
         index = 0
-        while index < self.rounds and self.flag:
-            index = index + 1
+        while True:
+            # input("Press enter to continue...")
+            index += 1
             print("\nLabel propagation round: " + str(index) + ".\n")
-            self.do_a_propagation()
+            self.do_single_propagation()
+            print("Stop condition :" + str(self.estimate_stop_cond()))
+            # node_color = [float(self.labels[node]) for node in self.nodes]
+            # nx.draw_networkx(self.graph, pos=layout, node_color=node_color, font_size=8, node_size=150)
+            # plt.savefig(str(index) + ".png")
+            # plt.show()
+            if index > self.rounds or self.estimate_stop_cond() is True:
+                break
         print("end, next draw")
-        # draw plot through networkx
+        print(set(self.labels.values()))
         node_color = [float(self.labels[node]) for node in self.nodes]
-        nx.draw_networkx(self.graph, node_color=node_color, node_size=150, alpha=1)
-        plt.show()
+        plt.figure(dpi=100, figsize=(60, 40))
+        nx.draw_networkx(self.graph, pos=layout, node_color=node_color, width=0.1,  font_size=5, node_size=150)
+        plt.savefig("final.png")
+        # plt.show()
         # print("Modularity is: " + str(round(modularity(self.labels, self.graph), 3)) + ".\n")
         json_dumper(self.labels, self.args.assignment_output)
