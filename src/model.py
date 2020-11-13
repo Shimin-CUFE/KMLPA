@@ -3,11 +3,9 @@
 import random
 import networkx as nx
 from tqdm import tqdm
-from calculation_helper import overlap, unit, min_norm, normalized_overlap, overlap_generator
-from print_and_read import json_dumper
+from weight_calculator import overlap, unit, min_norm, normalized_overlap, overlap_generator
+from data_tools import json_dumper
 import matplotlib.pyplot as plt
-
-
 # need library scipy
 
 
@@ -31,6 +29,7 @@ class LabelPropagator:
         self.rounds = args.rounds
         self.weights = overlap_generator(normalized_overlap, self.graph)
         self.weight_setup(args.weighting)
+        self.layout = nx.spring_layout(self.graph)
 
     def weight_setup(self, weighting):
         """
@@ -93,7 +92,6 @@ class LabelPropagator:
         """
         Doing propagations until convergence or reaching time budget.
         """
-        layout = nx.spring_layout(self.graph)
         index = 0
         while True:
             # input("Press enter to continue...")
@@ -110,9 +108,9 @@ class LabelPropagator:
         print("end, next draw")
         print(set(self.labels.values()))
         node_color = [float(self.labels[node]) for node in self.nodes]
-        plt.figure(dpi=100, figsize=(60, 40))
-        nx.draw_networkx(self.graph, pos=layout, node_color=node_color, width=0.1,  font_size=5, node_size=150)
-        plt.savefig("final.png")
+        plt.figure(dpi=200, figsize=(60, 40))
+        nx.draw_networkx(self.graph, pos=self.layout, node_color=node_color, width=0.1,  font_size=5, node_size=150)
+        plt.savefig("..\\output\\final.png")
         # plt.show()
         # print("Modularity is: " + str(round(modularity(self.labels, self.graph), 3)) + ".\n")
         json_dumper(self.labels, self.args.assignment_output)

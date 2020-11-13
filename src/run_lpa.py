@@ -2,7 +2,7 @@
 
 from model import LabelPropagator
 from param_parser import parameter_parser
-from print_and_read import graph_reader, argument_printer
+from data_tools import graph_reader, argument_printer
 
 
 def create_and_run_model(args):
