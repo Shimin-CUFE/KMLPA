@@ -1,11 +1,15 @@
 """Model class label propagation."""
 
 import random
+import time
+
 import networkx as nx
 from tqdm import tqdm
 from weight_calculator import overlap, unit, min_norm, normalized_overlap, overlap_generator
 from data_tools import json_dumper
 import matplotlib.pyplot as plt
+
+
 # need library scipy
 
 
@@ -24,11 +28,11 @@ class LabelPropagator:
         self.graph = graph
         self.nodes = [node for node in graph.nodes()]
         self.labels = {node: node for node in self.nodes}
-        self.label_count = len(set(self.labels.values()))
-        self.seeding = args.seed
+        self.seeding = args.seed  # clear
         self.rounds = args.rounds
         self.weights = overlap_generator(normalized_overlap, self.graph)
         self.weight_setup(args.weighting)
+        print("Drawing layout: spring_layout")
         self.layout = nx.spring_layout(self.graph)
 
     def weight_setup(self, weighting):
@@ -44,6 +48,12 @@ class LabelPropagator:
             self.weights = overlap_generator(min_norm, self.graph)
         else:
             pass
+
+    def pre_processing(self):
+        pass
+
+    def post_processing(self):
+        pass
 
     def do_single_propagation(self):
         """
@@ -92,6 +102,9 @@ class LabelPropagator:
         """
         Doing propagations until convergence or reaching time budget.
         """
+        lpastart = time.clock()
+
+        self.pre_processing()  # Pre processing before propagation:
         index = 0
         while True:
             # input("Press enter to continue...")
@@ -99,18 +112,30 @@ class LabelPropagator:
             print("\nLabel propagation round: " + str(index) + ".\n")
             self.do_single_propagation()
             print("Stop condition :" + str(self.estimate_stop_cond()))
+
+            # # Draw plot every round
             # node_color = [float(self.labels[node]) for node in self.nodes]
-            # nx.draw_networkx(self.graph, pos=layout, node_color=node_color, font_size=8, node_size=150)
+            # nx.draw_networkx(self.graph, pos=self.layout, node_color=node_color, font_size=8, node_size=150)
             # plt.savefig(str(index) + ".png")
             # plt.show()
+
             if index > self.rounds or self.estimate_stop_cond() is True:
                 break
-        print("end, next draw")
+        self.post_processing()  # Post processing after propagation:
+
+        lpaend = time.clock()
+
+        label_count = len(set(self.labels.values()))
+        print("end, count is %s, CPU time is %f" % (label_count, (lpaend - lpastart)))
+        print(len(set(self.labels.values())))
         print(set(self.labels.values()))
+
+        # Draw plot
         node_color = [float(self.labels[node]) for node in self.nodes]
-        plt.figure(dpi=200, figsize=(60, 40))
-        nx.draw_networkx(self.graph, pos=self.layout, node_color=node_color, width=0.1,  font_size=5, node_size=150)
+        plt.figure(dpi=72, figsize=(60, 40))
+        nx.draw_networkx(self.graph, pos=self.layout, node_color=node_color, width=0.1, font_size=5, node_size=150)
         plt.savefig("..\\output\\final.png")
         # plt.show()
         # print("Modularity is: " + str(round(modularity(self.labels, self.graph), 3)) + ".\n")
+
         json_dumper(self.labels, self.args.assignment_output)
