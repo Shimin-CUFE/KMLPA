@@ -3,6 +3,7 @@
 import json
 import pandas as pd
 import networkx as nx
+import matplotlib.pyplot as plt
 from texttable import Texttable
 
 
@@ -40,3 +41,10 @@ def json_dumper(data, path):
     """
     with open(path, 'w') as outfile:
         json.dump(data, outfile)
+
+
+def image_printer(layout, graph, nodes, labels):
+    node_color = [float(labels[node]) for node in nodes]
+    plt.figure(dpi=72, figsize=(60, 40))
+    nx.draw_networkx(graph, pos=layout, node_color=node_color, width=0.1, font_size=5, node_size=150)
+    plt.savefig("..\\output\\final.png")

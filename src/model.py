@@ -5,8 +5,8 @@ import time
 
 import networkx as nx
 from tqdm import tqdm
-from weight_calculator import overlap, unit, min_norm, normalized_overlap, overlap_generator
-from data_tools import json_dumper
+from weight_calculator import *
+from data_tools import *
 import matplotlib.pyplot as plt
 
 
@@ -71,6 +71,7 @@ class LabelPropagator:
         :param source: Source node.
         :param neighbors: Neighboring nodes.
         """
+        # Need to ReFactor
         scores = {}
         for neighbor in neighbors:
             neighbor_label = self.labels[neighbor]
@@ -114,10 +115,7 @@ class LabelPropagator:
             print("Stop condition :" + str(self.estimate_stop_cond()))
 
             # # Draw plot every round
-            # node_color = [float(self.labels[node]) for node in self.nodes]
-            # nx.draw_networkx(self.graph, pos=self.layout, node_color=node_color, font_size=8, node_size=150)
-            # plt.savefig(str(index) + ".png")
-            # plt.show()
+            # image_printer(self.layout, self.graph, self.nodes, self.labels)
 
             if index > self.rounds or self.estimate_stop_cond() is True:
                 break
@@ -131,10 +129,13 @@ class LabelPropagator:
         print(set(self.labels.values()))
 
         # Draw plot
-        node_color = [float(self.labels[node]) for node in self.nodes]
-        plt.figure(dpi=72, figsize=(60, 40))
-        nx.draw_networkx(self.graph, pos=self.layout, node_color=node_color, width=0.1, font_size=5, node_size=150)
-        plt.savefig("..\\output\\final.png")
+        image_printer(self.layout, self.graph, self.nodes, self.labels)
+
+        # node_color = [float(self.labels[node]) for node in self.nodes]
+        # plt.figure(dpi=72, figsize=(60, 40))
+        # nx.draw_networkx(self.graph, pos=self.layout, node_color=node_color, width=0.1, font_size=5, node_size=150)
+        # plt.savefig("..\\output\\final.png")
+
         # plt.show()
         # print("Modularity is: " + str(round(modularity(self.labels, self.graph), 3)) + ".\n")
 
