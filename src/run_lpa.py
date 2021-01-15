@@ -1,4 +1,4 @@
-"""Running label propagation."""
+"""Run label propagation."""
 
 from model import LabelPropagator
 from param_parser import parameter_parser

@@ -3,11 +3,11 @@
 import random
 import time
 
-import networkx as nx
 from tqdm import tqdm
+
+from data_tools import json_dumper, plot_printer
 from weight_calculator import *
-from data_tools import *
-import matplotlib.pyplot as plt
+from modularity_calculator import modularity
 
 
 # need library scipy
@@ -24,8 +24,10 @@ class LabelPropagator:
         :param graph: NetworkX object.
         :param args: Arguments object.
         """
+        # read args and graph
         self.args = args
         self.graph = graph
+        # pre-processing (old)
         self.nodes = [node for node in graph.nodes()]
         self.labels = {node: node for node in self.nodes}
         self.seeding = args.seed  # clear
@@ -34,6 +36,7 @@ class LabelPropagator:
         self.weight_setup(args.weighting)
         print("Drawing layout: spring_layout")
         self.layout = nx.spring_layout(self.graph)
+        print("initialize done")
 
     def weight_setup(self, weighting):
         """
@@ -125,18 +128,12 @@ class LabelPropagator:
 
         label_count = len(set(self.labels.values()))
         print("end, count is %s, CPU time is %f" % (label_count, (lpaend - lpastart)))
-        print(len(set(self.labels.values())))
-        print(set(self.labels.values()))
+        # print(set(self.labels.values()))
 
         # Draw plot
-        image_printer(self.layout, self.graph, self.nodes, self.labels)
+        plot_printer(self.graph, self.layout, self.nodes, self.labels)
 
-        # node_color = [float(self.labels[node]) for node in self.nodes]
-        # plt.figure(dpi=72, figsize=(60, 40))
-        # nx.draw_networkx(self.graph, pos=self.layout, node_color=node_color, width=0.1, font_size=5, node_size=150)
-        # plt.savefig("..\\output\\final.png")
-
-        # plt.show()
-        # print("Modularity is: " + str(round(modularity(self.labels, self.graph), 3)) + ".\n")
+        # Calculate modularity
+        print("Modularity is: " + str(modularity(self.graph, self.labels)))
 
         json_dumper(self.labels, self.args.assignment_output)

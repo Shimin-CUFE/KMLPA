@@ -43,8 +43,19 @@ def json_dumper(data, path):
         json.dump(data, outfile)
 
 
-def image_printer(layout, graph, nodes, labels):
+def plot_printer(graph, layout, nodes, labels):
+    """
+    Function to save a png file of network to disk.
+    :param layout: Dictionary of cluster memberships.
+    :param graph: Path for dumping the JSON.
+    :param nodes: Nodes
+    :param labels: Labels of Nodes
+    """
+    width = 30
+    height = 20
+    dpi = 72
     node_color = [float(labels[node]) for node in nodes]
-    plt.figure(dpi=72, figsize=(60, 40))
+    plt.figure(dpi=dpi, figsize=(width, height))
     nx.draw_networkx(graph, pos=layout, node_color=node_color, width=0.1, font_size=5, node_size=150)
+    # plt.show()
     plt.savefig("..\\output\\final.png")
