@@ -34,6 +34,7 @@ def judge_cluster(i, j, l):
 
 def Q(array, cluster):
     """
+    计算模块度
     Calculate modularity
     :param array: 图邻接矩阵（numpy）
     :param cluster: 图社区划分（list）
@@ -51,7 +52,7 @@ def Q(array, cluster):
 
 def modularity(graph, labels):
     array = np.array(nx.adjacency_matrix(graph).todense())
-    cluster = labels
+    cluster = list(labels.values())
     return Q(array, cluster)
 
 

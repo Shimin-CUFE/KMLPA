@@ -1,42 +1,39 @@
 """Model class label propagation."""
+# 需要scipy库 Require scipy
 
 import random
 import time
 
+import community as community_louvain
 from tqdm import tqdm
 
 from data_tools import json_dumper, plot_printer
-from weight_calculator import *
 from modularity_calculator import modularity
-
-
-# need library scipy
+from weight_calculator import *
 
 
 class LabelPropagator:
     """
+    标签传播算法类，传入networkx graph对象与参数对象进行初始化，调用label_propagation()方法进行标签传播迭代
     Label propagation class.
     """
 
     def __init__(self, graph, args):
         """
+        初始化对象，读取参数与networkx graph对象，生成nodes与labels列表
         Setting up the Label Propagator object.
         :param graph: NetworkX object.
         :param args: Arguments object.
         """
-        # read args and graph
+        print("[INIT]Initialize start")
         self.args = args
         self.graph = graph
-        # pre-processing (old)
         self.nodes = [node for node in graph.nodes()]
         self.labels = {node: node for node in self.nodes}
         self.seeding = args.seed  # clear
-        self.rounds = args.rounds
-        self.weights = overlap_generator(normalized_overlap, self.graph)
+        self.max_round = args.rounds
         self.weight_setup(args.weighting)
-        print("Drawing layout: spring_layout")
-        self.layout = nx.spring_layout(self.graph)
-        print("initialize done")
+        print("[INIT]Initialize done\n")
 
     def weight_setup(self, weighting):
         """
@@ -53,87 +50,100 @@ class LabelPropagator:
             pass
 
     def pre_processing(self):
+        """
+        预处理部分
+        :return: None
+        """
+        print("[PRE]Start pre processing")
+
+        print("[PRE]End of pre processing")
         pass
 
     def post_processing(self):
-        pass
+        """
+        后处理部分
+        :return: None
+        """
+        print("[POST]Start post processing")
 
-    def do_single_propagation(self):
-        """
-        Doing a propagation round.
-        """
-        # random.seed(self.seeding)
-        # random.shuffle(self.nodes)
-        for node in tqdm(self.nodes):
-            neighbors = self.graph.neighbors(node)
-            self.labels[node] = self.pick_neighbor(node, neighbors)
+        print("[POST]End of post processing")
+        pass
 
     def pick_neighbor(self, source, neighbors):
         """
+        从节点的邻居中选择一个标签
         Choosing a neighbor from a propagation source node.
         :param source: Source node.
         :param neighbors: Neighboring nodes.
         """
-        # Need to ReFactor
         scores = {}
         for neighbor in neighbors:
             neighbor_label = self.labels[neighbor]
             scores[neighbor_label] = scores.setdefault(neighbor_label, 0.0) + self.weights[(neighbor, source)]
         scores_items = list(scores.items())
         scores_items.sort(key=lambda x: x[1], reverse=True)
-
         # if there is not only one label with maximum count then choose one randomly
         labels = [(k, v) for k, v in scores_items if v == scores_items[0][1]]
         label = random.sample(labels, 1)[0][0]
         return label
 
     def estimate_stop_cond(self):
+        """
+        更新一轮，查看节点标签是否继续变化，若无变化则停止迭代
+        :return: 迭代指示布尔值。False-停止迭代
+        """
         for node in self.nodes:
             count = {}
             for neighbor in self.graph.neighbors(node):
                 neighbor_label = self.labels[neighbor]
                 count[neighbor_label] = count.setdefault(neighbor_label, 0.0) + self.weights[(neighbor, node)]
-            # find out labels with maximum count
             count_items = list(count.items())
             count_items.sort(key=lambda x: x[1], reverse=True)
-            # if there is not only one label with maximum count then choose one randomly
-            labels = [k for k, v in count_items if v == count_items[0][1]]
-            if self.labels[node] not in labels:
+            new_labels = [k for k, v in count_items if v == count_items[0][1]]
+            # 停止条件：没有新的label变化
+            if self.labels[node] not in new_labels:
                 return False
         return True
 
-    def start_label_propagation(self):
+    def label_propagation(self):
         """
-        Doing propagations until convergence or reaching time budget.
+        运行标签传播算法，直到收敛（无新标签生成）或达到迭代轮数上限
+        Doing propagations until convergence or reaching round budget.
         """
-        lpastart = time.clock()
+        lpa_start = time.time()
 
-        self.pre_processing()  # Pre processing before propagation:
-        index = 0
+        self.pre_processing()  # 预处理
+        iter_round = 0
         while True:
-            # input("Press enter to continue...")
-            index += 1
-            print("\nLabel propagation round: " + str(index) + ".\n")
-            self.do_single_propagation()
-            print("Stop condition :" + str(self.estimate_stop_cond()))
-
-            # # Draw plot every round
-            # image_printer(self.layout, self.graph, self.nodes, self.labels)
-
-            if index > self.rounds or self.estimate_stop_cond() is True:
+            # input("Press enter to continue...\n")
+            iter_round += 1
+            print("[RUNNING]Label propagation round: %s" % str(iter_round))
+            # 标签传播循环，从邻居节点中挑选标签
+            for node in self.nodes:
+                neighbors = self.graph.neighbors(node)
+                self.labels[node] = self.pick_neighbor(node, neighbors)
+            # 判断停止条件与迭代轮数
+            stop_cond = self.estimate_stop_cond()
+            print("[RUNNING]Round %d stop condition: %s\n" % (iter_round, stop_cond))
+            if iter_round > self.max_round or stop_cond is True:
                 break
-        self.post_processing()  # Post processing after propagation:
+        self.post_processing()  # 后处理
 
-        lpaend = time.clock()
-
+        lpa_end = time.time()
         label_count = len(set(self.labels.values()))
-        print("end, count is %s, CPU time is %f" % (label_count, (lpaend - lpastart)))
-        # print(set(self.labels.values()))
+        print("[END]%d nodes with %d communities, %f seconds consumed" % (
+        len(self.nodes), label_count, (lpa_end - lpa_start)))
 
-        # Draw plot
-        plot_printer(self.graph, self.layout, self.nodes, self.labels)
+        # 模块度计算 Calculate modularity
+        print("[MOD]Modularity is " + str(community_louvain.modularity(self.labels, self.graph)))
+        # print(modularity(self.graph, self.labels)) # 循环计算法较慢，弃用
 
-        # Calculate modularity
-        print("Modularity is: " + str(modularity(self.graph, self.labels)))
+        # 绘图 Draw plot
+        choice = input("[PLOT]Print plot? (y/n): ")
+        if choice == "y" or choice == "Y":
+            plot_printer(self.graph, self.labels)
 
+        # 输出结果至JSON文件 Dump result
         json_dumper(self.labels, self.args.assignment_output)
+
+        print("[FINISH]Finish running of Label propagation model")
