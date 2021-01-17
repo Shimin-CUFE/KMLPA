@@ -30,7 +30,6 @@ class LabelPropagator:
         self.graph = graph
         self.nodes = [node for node in graph.nodes()]
         self.labels = {node: node for node in self.nodes}
-        self.seeding = args.seed  # clear
         self.max_round = args.rounds
         self.weight_setup(args.weighting)
         print("[INIT]Initialize done\n")
@@ -131,8 +130,7 @@ class LabelPropagator:
 
         lpa_end = time.time()
         label_count = len(set(self.labels.values()))
-        print("[END]%d nodes with %d communities, %f seconds consumed" % (
-        len(self.nodes), label_count, (lpa_end - lpa_start)))
+        print("[END]%d nodes with %d communities, %f seconds consumed" % (len(self.nodes), label_count, (lpa_end - lpa_start)))
 
         # 模块度计算 Calculate modularity
         print("[MOD]Modularity is " + str(community_louvain.modularity(self.labels, self.graph)))

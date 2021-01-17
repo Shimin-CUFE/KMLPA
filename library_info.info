@@ -1,5 +1,8 @@
 networkx
 scipy
+pandas
+texttable
 tqdm
 matplotlib
 numpy
+python_louvain(import as community)
