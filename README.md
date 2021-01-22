@@ -14,6 +14,9 @@ Author: GSM HZH CL HF HYB
 - matplotlib 3.3.3
 - numpy 1.19.5
 - python_louvain 0.15 (NOTE: import as community)
+- scrapy 1.7.2
+- lxml 4.4.0
+- Twisted 19.2.1
 
 ##算法运行方法
 @PyCharm
