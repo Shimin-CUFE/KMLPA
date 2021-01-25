@@ -30,6 +30,7 @@ class LabelPropagator:
         self.graph = graph
         self.nodes = [node for node in graph.nodes()]
         self.labels = {node: node for node in self.nodes}
+        self.degree = dict(self.graph.degree)
         self.max_round = args.rounds
         self.weight_setup(args.weighting)
         print("[INIT]Initialize done\n")
