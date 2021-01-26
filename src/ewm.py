@@ -6,7 +6,7 @@ def ewm_weight(*inds):
     """
     通过熵权法计算指标权重
     get weight through ewm
-    :param inds: 若干指标字典，字典key排列需保持一致
+    :param inds: 若干指标字典（注：字典key排序需保持一致）
     :return: 指标权重列表，按输入字典顺序排列
     """
     # 初始化

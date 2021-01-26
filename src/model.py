@@ -8,6 +8,7 @@ import community as community_louvain
 from tqdm import tqdm
 
 from data_tools import json_dumper, plot_printer
+from ewm import ewm_weight
 from modularity_calculator import modularity
 from weight_calculator import *
 
@@ -55,9 +56,20 @@ class LabelPropagator:
         :return: None
         """
         print("[PRE]Start pre processing")
+        # K核分解部分
 
+        # 使用熵权法计算影响力，倒序排序部分(dict1代替K核分解结果字典)
+        dict1 = self.degree  # 暂时用度数代替
+        weight = ewm_weight(dict1, self.degree)
+        result = []
+        length = len(self.degree)
+        for i in range(length):
+            inf = list(dict1.values())[i] * weight[0] + list(self.degree.values())[i] * weight[1]
+            result.append(inf)
+        sortres = list(dict(sorted(dict(zip(self.nodes, result)).items(), key=lambda x: x[1], reverse=True)).keys())
+        print(sortres)
+        self.nodes = sortres
         print("[PRE]End of pre processing")
-        pass
 
     def post_processing(self):
         """
@@ -115,7 +127,6 @@ class LabelPropagator:
         self.pre_processing()  # 预处理
         iter_round = 0
         while True:
-            # input("Press enter to continue...\n")
             iter_round += 1
             print("[RUNNING]Label propagation round: %s" % str(iter_round))
             # 标签传播循环，从邻居节点中挑选标签
@@ -131,7 +142,8 @@ class LabelPropagator:
 
         lpa_end = time.time()
         label_count = len(set(self.labels.values()))
-        print("[END]%d nodes with %d communities, %f seconds consumed" % (len(self.nodes), label_count, (lpa_end - lpa_start)))
+        print("[END]%d nodes with %d communities, %f seconds consumed" % (
+        len(self.nodes), label_count, (lpa_end - lpa_start)))
 
         # 模块度计算 Calculate modularity
         print("[MOD]Modularity is " + str(community_louvain.modularity(self.labels, self.graph)))
