@@ -47,7 +47,8 @@ def ewm_weight(*inds):
 if __name__ == "__main__":
     dict1 = {1: 2, 3: 4, 5: 6, 7: 8}
     dict2 = {7: 8, 9: 10, 11: 16, 13: 14}
-    weight = ewm_weight(dict1, dict2)
+    dict3 = {15: 16, 17: 18, 19: 20, 21: 22}
+    weight = ewm_weight(dict1, dict2, dict3)
     print("weight list: ")
     print(weight)
     print(sum(weight))
