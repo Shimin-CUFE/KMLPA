@@ -57,9 +57,35 @@ class LabelPropagator:
         """
         print("[PRE]Start pre processing")
         # K核分解部分
+        # Kshell字典:{node:K-shell值}
+        """
+        graphReplica = self.graph
+        Kshell = {node: 0 for node in self.nodes}
+        while len(graphReplica.nodes) != 0:
+            Nodes = list(graphReplica.nodes)
+            Degrees = list(dict(graphReplica.degree).values())
+            for num in range(len(Degrees)):
+                if Degrees[num] == min(Degrees):
+                    graphReplica.remove_node(Nodes[num])
+                    Kshell[Nodes[num]] = min(Degrees)
+        """
+
+        # KIterations字典:{node:K核迭代次数}
+        graphReplica = self.graph
+        KIterations = {node: 0 for node in self.nodes}
+        iteration = 1
+        while len(graphReplica.nodes) != 0:
+            Nodes = list(graphReplica.nodes)
+            Degrees = list(dict(graphReplica.degree).values())
+            for num in range(len(Degrees)):
+                if Degrees[num] == min(Degrees):
+                    graphReplica.remove_node(Nodes[num])
+                    KIterations[Nodes[num]] = iteration
+            iteration = iteration + 1
+        print(KIterations)
 
         # 使用熵权法计算影响力，倒序排序部分(dict1代替K核分解结果字典)
-        dict1 = self.degree  # 暂时用度数代替
+        dict1 = KIterations  # KIterations字典：{node:K核迭代次数}
         weight = ewm_weight(dict1, self.degree)
         result = []
         length = len(self.degree)
