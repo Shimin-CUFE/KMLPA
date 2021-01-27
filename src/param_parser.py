@@ -16,12 +16,12 @@ def parameter_parser():
 
     parser.add_argument("--input",
                         nargs="?",
-                        default=project_path + "\\data\\d.csv",
+                        default=project_path + "\\data\\facebook.csv",
                         help="Input graph path.")
 
     parser.add_argument("--assignment-output",
                         nargs="?",
-                        default=project_path + "\\output\\d.json",
+                        default=project_path + "\\output\\facebook.json",
                         help="Assignment path.")
 
     parser.add_argument("--weighting",

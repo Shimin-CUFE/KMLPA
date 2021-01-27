@@ -71,7 +71,7 @@ class LabelPropagator:
         """
 
         # KIterations字典:{node:K核迭代次数}
-        graphReplica = self.graph
+        graphReplica = self.graph.copy()
         KIterations = {node: 0 for node in self.nodes}
         iteration = 1
         while len(graphReplica.nodes) != 0:
@@ -83,14 +83,15 @@ class LabelPropagator:
                     KIterations[Nodes[num]] = iteration
             iteration = iteration + 1
         print(KIterations)
+        print(self.degree)
 
-        # 使用熵权法计算影响力，倒序排序部分(dict1代替K核分解结果字典)
-        dict1 = KIterations  # KIterations字典：{node:K核迭代次数}
-        weight = ewm_weight(dict1, self.degree)
+        # 使用熵权法计算影响力，倒序排序部分
+        # KIterations字典：{node:K核迭代次数}
+        weight = ewm_weight(KIterations, self.degree)
         result = []
         length = len(self.degree)
         for i in range(length):
-            inf = list(dict1.values())[i] * weight[0] + list(self.degree.values())[i] * weight[1]
+            inf = list(KIterations.values())[i] * weight[0] + list(self.degree.values())[i] * weight[1]
             result.append(inf)
         sortres = list(dict(sorted(dict(zip(self.nodes, result)).items(), key=lambda x: x[1], reverse=True)).keys())
         print(sortres)
