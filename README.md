@@ -17,6 +17,8 @@ Author: GSM HZH CL HF HYB
 - scrapy 1.7.2
 - lxml 4.4.0
 - Twisted 19.2.1
+- igraph 0.1.11
+- snap 0.5
 
 ##算法运行方法
 @PyCharm
