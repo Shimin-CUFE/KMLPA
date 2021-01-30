@@ -50,11 +50,11 @@ def plot_printer(graph, labels):
     :param graph: Graph to print.
     :param labels: Labels of Nodes
     """
-    # 设置参数：图片大小与颜色
-    width = 30
-    height = 20
-    dpi = 150
-    plt.figure(figsize=(width, height), dpi=dpi)
+    # # 设置参数：图片大小与颜色
+    # width = 30
+    # height = 20
+    # dpi = 150
+    # plt.figure(figsize=(width, height), dpi=dpi)
     cmap = cm.get_cmap('viridis', max(labels.values()) + 1)
     # 绘图：分别绘制节点-边-标签
     layout = nx.spring_layout(graph)

@@ -115,10 +115,13 @@ class LabelPropagator:
         :param source: Source node.
         :param neighbors: Neighboring nodes.
         """
-        scores = {}
+        scores = {self.labels[source]: 0.0}
         for neighbor in neighbors:
             neighbor_label = self.labels[neighbor]
-            scores[neighbor_label] = scores.setdefault(neighbor_label, 0.0) + self.weights[(neighbor, source)]
+            if neighbor_label is None:
+                scores[neighbor_label] = -1.0
+            else:
+                scores[neighbor_label] = scores.setdefault(neighbor_label, 0.0) + self.weights[(neighbor, source)]
         scores_items = list(scores.items())
         scores_items.sort(key=lambda x: x[1], reverse=True)
         # if there is not only one label with maximum count then choose one randomly
@@ -132,10 +135,13 @@ class LabelPropagator:
         :return: 迭代指示布尔值。False-停止迭代
         """
         for node in self.nodes:
-            count = {}
+            count = {self.labels[node]: 0.0}
             for neighbor in self.graph.neighbors(node):
                 neighbor_label = self.labels[neighbor]
-                count[neighbor_label] = count.setdefault(neighbor_label, 0.0) + self.weights[(neighbor, node)]
+                if neighbor_label is None:
+                    count[neighbor_label] = -1.0
+                else:
+                    count[neighbor_label] = count.setdefault(neighbor_label, 0.0) + self.weights[(neighbor, node)]
             count_items = list(count.items())
             count_items.sort(key=lambda x: x[1], reverse=True)
             new_labels = [k for k, v in count_items if v == count_items[0][1]]
