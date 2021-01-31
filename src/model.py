@@ -7,6 +7,7 @@ import time
 import community as community_louvain
 from texttable import Texttable
 from tqdm import tqdm
+import numpy as np
 
 from data_tools import json_dumper, plot_printer
 from ewm import ewm_weight
@@ -62,7 +63,7 @@ class LabelPropagator:
         # K核分解部分
         # Kshell字典:{node:K-shell值}
         """
-        graphReplica = self.graph
+        graphReplica = self.graph.copy()
         Kshell = {node: 0 for node in self.nodes}
         while len(graphReplica.nodes) != 0:
             Nodes = list(graphReplica.nodes)
@@ -84,6 +85,7 @@ class LabelPropagator:
                 if Degrees[num] == min(Degrees):
                     graphReplica.remove_node(Nodes[num])
                     KIterations[Nodes[num]] = iteration
+                    self.labels[Nodes[num]] = min(Degrees)  # 把self.labels字典的value值改为K-shell值
             iteration = iteration + 1
         print(KIterations)
         print(self.degree)
@@ -99,6 +101,15 @@ class LabelPropagator:
         sortres = list(dict(sorted(dict(zip(self.nodes, result)).items(), key=lambda x: x[1], reverse=True)).keys())
         print(sortres)
         self.nodes = sortres
+
+        # 更新标签字典self.labels
+        average = sum(self.labels.values()) / len(self.nodes)  # 平均数
+        a = np.array(list(self.labels.values()))
+        p = np.percentile(a, 50)  # return 50th percentile, e.g median
+        for node in self.nodes:
+            if self.labels[node] < average:
+                self.labels[node] = None
+        print(self.labels)
         print("[PRE]End of pre processing")
 
     def post_processing(self):
