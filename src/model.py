@@ -85,11 +85,19 @@ class LabelPropagator:
                 if Degrees[num] == min(Degrees):
                     graphReplica.remove_node(Nodes[num])
                     KIterations[Nodes[num]] = iteration
-                    self.labels[Nodes[num]] = min(Degrees)  # 把self.labels字典的value值改为K-shell值
             iteration = iteration + 1
         # # debug
         # print(KIterations)
         # print(self.degree)
+
+        # 更新标签字典self.labels
+        average = sum(self.labels.values()) / len(self.nodes)  # 平均数
+        a = np.array(list(self.labels.values()))
+        p = np.percentile(a, 50)  # return 50th percentile, e.g median
+        for node in self.nodes:
+            if self.labels[node] < average:
+                self.labels[node] = None
+        print(self.labels)
 
         # 使用熵权法计算影响力，倒序排序部分
         # KIterations字典：{node:K核迭代次数}
@@ -103,15 +111,6 @@ class LabelPropagator:
         # # debug
         # print(sortres)
         self.nodes = sortres
-
-        # 更新标签字典self.labels
-        average = sum(self.labels.values()) / len(self.nodes)  # 平均数
-        a = np.array(list(self.labels.values()))
-        p = np.percentile(a, 50)  # return 50th percentile, e.g median
-        for node in self.nodes:
-            if self.labels[node] < average:
-                self.labels[node] = None
-        print(self.labels)
         print("[PRE]End of pre processing")
 
     def post_processing(self):
