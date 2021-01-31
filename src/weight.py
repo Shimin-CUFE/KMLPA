@@ -48,7 +48,7 @@ def min_norm(g, node_1, node_2):
     return float(inter) / float(min_norm)
 
 
-def overlap_generator(metric, graph):
+def weight_generator(metric, graph):
     """
     Calculating the overlap for each edge.
     :param metric: Weight metric.

@@ -5,12 +5,13 @@ import random
 import time
 
 import community as community_louvain
+from texttable import Texttable
 from tqdm import tqdm
 
 from data_tools import json_dumper, plot_printer
 from ewm import ewm_weight
 from modularity_calculator import modularity
-from weight_calculator import *
+from weight import *
 
 
 class LabelPropagator:
@@ -42,11 +43,13 @@ class LabelPropagator:
         :param weighting: Type of edge weights.
         """
         if weighting == "overlap":
-            self.weights = overlap_generator(overlap, self.graph)
+            self.weights = weight_generator(overlap, self.graph)
         elif weighting == "unit":
-            self.weights = overlap_generator(unit, self.graph)
+            self.weights = weight_generator(unit, self.graph)
         elif weighting == "min_norm":
-            self.weights = overlap_generator(min_norm, self.graph)
+            self.weights = weight_generator(min_norm, self.graph)
+        elif weighting == "normalized_overlap":
+            self.weights = weight_generator(normalized_overlap, self.graph)
         else:
             pass
 
@@ -175,12 +178,17 @@ class LabelPropagator:
 
         lpa_end = time.time()
         label_count = len(set(self.labels.values()))
-        print("[END]%d nodes with %d communities, %f seconds consumed" % (
-        len(self.nodes), label_count, (lpa_end - lpa_start)))
+        print("[END]%d nodes with %d communities, %f seconds consumed" % (len(self.nodes), label_count, (lpa_end - lpa_start)))
 
         # 模块度计算 Calculate modularity
         print("[MOD]Modularity is " + str(community_louvain.modularity(self.labels, self.graph)))
         # print(modularity(self.graph, self.labels)) # 循环计算法较慢，弃用
+
+        # # TODO
+        # # 输出社区数据
+        # t = Texttable()
+        # t.set_deco(Texttable.HEADER)
+        # t.add_rows([["Community", "Nodes", "Edges", ]])
 
         # 绘图 Draw plot
         choice = input("[PLOT]Print plot? (y/n): ")
