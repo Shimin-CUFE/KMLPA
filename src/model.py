@@ -87,8 +87,9 @@ class LabelPropagator:
                     KIterations[Nodes[num]] = iteration
                     self.labels[Nodes[num]] = min(Degrees)  # 把self.labels字典的value值改为K-shell值
             iteration = iteration + 1
-        print(KIterations)
-        print(self.degree)
+        # # debug
+        # print(KIterations)
+        # print(self.degree)
 
         # 使用熵权法计算影响力，倒序排序部分
         # KIterations字典：{node:K核迭代次数}
@@ -99,7 +100,8 @@ class LabelPropagator:
             inf = list(KIterations.values())[i] * weight[0] + list(self.degree.values())[i] * weight[1]
             result.append(inf)
         sortres = list(dict(sorted(dict(zip(self.nodes, result)).items(), key=lambda x: x[1], reverse=True)).keys())
-        print(sortres)
+        # # debug
+        # print(sortres)
         self.nodes = sortres
 
         # 更新标签字典self.labels
@@ -185,7 +187,9 @@ class LabelPropagator:
             print("[RUNNING]Round %d stop condition: %s\n" % (iter_round, stop_cond))
             if iter_round > self.max_round or stop_cond is True:
                 break
-        self.post_processing()  # 后处理
+        # TODO for Chenlan
+
+        self.post_processing(self, )  # 后处理
 
         lpa_end = time.time()
         label_count = len(set(self.labels.values()))
