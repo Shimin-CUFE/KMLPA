@@ -86,18 +86,14 @@ class LabelPropagator:
                     graphReplica.remove_node(Nodes[num])
                     KIterations[Nodes[num]] = iteration
             iteration = iteration + 1
-        # # debug
-        # print(KIterations)
-        # print(self.degree)
 
         # 更新标签字典self.labels
         average = sum(self.labels.values()) / len(self.nodes)  # 平均数
-        a = np.array(list(self.labels.values()))
-        p = np.percentile(a, 50)  # return 50th percentile, e.g median
+        a = np.array(list(KIterations.values()))
+        p = np.percentile(a, 50)  # 截取标签分位数
         for node in self.nodes:
-            if self.labels[node] < average:
+            if KIterations[node] < p:
                 self.labels[node] = None
-        print(self.labels)
 
         # 使用熵权法计算影响力，倒序排序部分
         # KIterations字典：{node:K核迭代次数}
@@ -108,8 +104,6 @@ class LabelPropagator:
             inf = list(KIterations.values())[i] * weight[0] + list(self.degree.values())[i] * weight[1]
             result.append(inf)
         sortres = list(dict(sorted(dict(zip(self.nodes, result)).items(), key=lambda x: x[1], reverse=True)).keys())
-        # # debug
-        # print(sortres)
         self.nodes = sortres
         print("[PRE]End of pre processing")
 
@@ -188,7 +182,7 @@ class LabelPropagator:
                 break
         # TODO for Chenlan
 
-        self.post_processing(self, )  # 后处理
+        self.post_processing()  # 后处理
 
         lpa_end = time.time()
         label_count = len(set(self.labels.values()))
