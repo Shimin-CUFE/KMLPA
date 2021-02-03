@@ -88,9 +88,8 @@ class LabelPropagator:
             iteration = iteration + 1
 
         # 更新标签字典self.labels
-        average = sum(self.labels.values()) / len(self.nodes)  # 平均数
         a = np.array(list(KIterations.values()))
-        p = np.percentile(a, 50)  # 截取标签分位数
+        p = np.percentile(a, 25)  # 截取标签分位数
         for node in self.nodes:
             if KIterations[node] < p:
                 self.labels[node] = None

@@ -9,19 +9,19 @@ project_path = os.path.abspath(os.path.dirname(os.path.dirname(sys.argv[0])))
 
 def parameter_parser():
     """
-    A method to parse up command line parameters. By default it does community detection on the Facebook politicians network.
-    The default hyperparameters give a good quality clustering. Default weighting happens by neighborhood overlap.
+    A method to parse up command line parameters.
+    By default it does community detection on the Facebook politicians network.
     """
     parser = argparse.ArgumentParser(description="Run Label Propagation.")
 
     parser.add_argument("--input",
                         nargs="?",
-                        default=project_path + "\\data\\facebook.csv",
+                        default=project_path + "\\data\\dolphins.gml",
                         help="Input graph path.")
 
     parser.add_argument("--assignment-output",
                         nargs="?",
-                        default=project_path + "\\output\\facebook.json",
+                        default=project_path + "\\output\\dolphins.json",
                         help="Assignment path.")
 
     parser.add_argument("--weighting",

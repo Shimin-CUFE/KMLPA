@@ -27,10 +27,13 @@ def graph_reader(input_path):
     :param input_path: Graph read into memory.
     :return graph: Networkx graph.
     """
-    edges = pd.read_csv(input_path)
-    graph = nx.from_edgelist(edges.values.tolist())
-    # for node, data in graph.nodes(True):
-    #     data['label'] = node
+    if input_path.endswith(".csv"):
+        edges = pd.read_csv(input_path)
+        graph = nx.from_edgelist(edges.values.tolist())
+    elif input_path.endswith(".gml"):
+        graph = nx.read_gml(input_path, label=None)
+    else:
+        graph = None
     return graph
 
 
@@ -55,17 +58,18 @@ def plot_printer(graph, labels):
     # height = 20
     # dpi = 150
     # plt.figure(figsize=(width, height), dpi=dpi)
-    cmap = cm.get_cmap('viridis', max(labels.values()) + 1)
+
     # 绘图：分别绘制节点-边-标签
+    # cmap = cm.get_cmap('viridis', (len(labels.values()) + 1))
     layout = nx.spring_layout(graph)
-    nx.draw_networkx_nodes(graph, layout, labels.keys(), node_size=180,
-                           cmap=cmap, node_color=list(labels.values()))
+    nx.draw_networkx_nodes(graph, layout, labels.keys(), node_size=150,
+                           node_color=list(pd.Series(labels.values()).astype('category').cat.codes.values))
     nx.draw_networkx_edges(graph, layout, alpha=0.5)
     new_labels = {}
     for key in labels:
         merge_label = str(key) + "@" + str(labels[key])
         new_labels.update({key: merge_label})
-    nx.draw_networkx_labels(graph, layout, new_labels, font_size=5, font_color="r", font_weight="bold")
+    nx.draw_networkx_labels(graph, layout, new_labels, font_size=8, font_color="r", font_weight="bold")
     # 导出：选择立即显示（show）或保存（savefig）
     plt.show()
     # plt.savefig("..\\output\\final.png")
