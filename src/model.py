@@ -112,7 +112,39 @@ class LabelPropagator:
         :return: None
         """
         print("[POST]Start post processing")
-
+        # TODO
+        label_set = list(set(self.labels.values()))
+        coh=[]
+        bridge=np.zeros(max(label_set)+1)
+        DimoutMax=list(bridge)
+        t=0.7 #设定一个阈值
+        for i in range(len(set(self.labels.values()))):
+            dimin=0
+            dimout=0
+            for node in self.nodes:
+                if self.labels[node]!=label_set[i]:
+                    continue
+                else:
+                    for neighbor in self.graph.neighbors(node):
+                        neighbor_label = self.labels[neighbor]
+                        if neighbor_label == label_set[i]:
+                            dimin+=1
+                        else:
+                            dimout+=1
+                            if DimoutMax[neighbor_label]>=0:
+                                DimoutMax[neighbor_label]+=1
+                            else:
+                                DimoutMax[neighbor_label]=0
+            dimin/=2
+            coh.append(dimin/dimout)
+            if coh[i]>t:
+                continue
+            else:#合并社区
+                for node in self.nodes:
+                    if self.labels[node] != label_set[i]:
+                        continue
+                    else:
+                        self.labels[node]= DimoutMax.index(max(DimoutMax))
         print("[POST]End of post processing")
         pass
 
@@ -181,10 +213,12 @@ class LabelPropagator:
                 break
         # TODO for Chenlan
 
+
         self.post_processing()  # 后处理
 
         lpa_end = time.time()
         label_count = len(set(self.labels.values()))
+
         print("[END]%d nodes with %d communities, %f seconds consumed" % (len(self.nodes), label_count, (lpa_end - lpa_start)))
 
         # 模块度计算 Calculate modularity
