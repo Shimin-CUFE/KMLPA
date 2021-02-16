@@ -134,7 +134,10 @@ class LabelPropagator:
                             else:
                                 dimout_max[neighbor_label] = 0
             dimin /= 2
-            coh.append(dimin / dimout)
+            if dimout==0:
+                continue
+            else:
+                coh.append(dimin / dimout)
             if coh[i] > t:
                 continue
             else:  # 合并社区
