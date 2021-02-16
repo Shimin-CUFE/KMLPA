@@ -56,12 +56,12 @@ class LabelPropagator:
 
     def pre_processing(self):
         """
-        预处理部分
+        预处理部分：综合K核分解与节点度数的影响力认定
         :return: None
         """
         print("[PRE]Start pre processing")
         # K核分解部分
-        # Kshell字典:{node:K-shell值}
+        # Kshell字典: {node:K-shell值}
         """
         graphReplica = self.graph.copy()
         Kshell = {node: 0 for node in self.nodes}
@@ -85,7 +85,7 @@ class LabelPropagator:
                 if Degrees[num] == min(Degrees):
                     graphReplica.remove_node(Nodes[num])
                     KIterations[Nodes[num]] = iteration
-            iteration = iteration + 1
+            iteration += 1
 
         # 更新标签字典self.labels
         a = np.array(list(KIterations.values()))
@@ -95,7 +95,6 @@ class LabelPropagator:
                 self.labels[node] = None
 
         # 使用熵权法计算影响力，倒序排序部分
-        # KIterations字典：{node:K核迭代次数}
         weight = ewm_weight(KIterations, self.degree)
         result = []
         length = len(self.degree)
@@ -108,43 +107,42 @@ class LabelPropagator:
 
     def post_processing(self):
         """
-        后处理部分
+        后处理部分：合并孤岛社区
         :return: None
         """
         print("[POST]Start post processing")
-        # TODO
         label_set = list(set(self.labels.values()))
-        coh=[]
-        bridge=np.zeros(max(label_set)+1)
-        DimoutMax=list(bridge)
-        t=0.7 #设定一个阈值
+        coh = []
+        bridge = np.zeros(max(label_set) + 1)
+        dimout_max = list(bridge)
+        t = 0.7  # 设定一个阈值
         for i in range(len(set(self.labels.values()))):
-            dimin=0
-            dimout=0
+            dimin = 0
+            dimout = 0
             for node in self.nodes:
-                if self.labels[node]!=label_set[i]:
+                if self.labels[node] != label_set[i]:
                     continue
                 else:
                     for neighbor in self.graph.neighbors(node):
                         neighbor_label = self.labels[neighbor]
                         if neighbor_label == label_set[i]:
-                            dimin+=1
+                            dimin += 1
                         else:
-                            dimout+=1
-                            if DimoutMax[neighbor_label]>=0:
-                                DimoutMax[neighbor_label]+=1
+                            dimout += 1
+                            if dimout_max[neighbor_label] >= 0:
+                                dimout_max[neighbor_label] += 1
                             else:
-                                DimoutMax[neighbor_label]=0
-            dimin/=2
-            coh.append(dimin/dimout)
-            if coh[i]>t:
+                                dimout_max[neighbor_label] = 0
+            dimin /= 2
+            coh.append(dimin / dimout)
+            if coh[i] > t:
                 continue
-            else:#合并社区
+            else:  # 合并社区
                 for node in self.nodes:
                     if self.labels[node] != label_set[i]:
                         continue
                     else:
-                        self.labels[node]= DimoutMax.index(max(DimoutMax))
+                        self.labels[node] = dimout_max.index(max(dimout_max))
         print("[POST]End of post processing")
         pass
 
@@ -211,15 +209,14 @@ class LabelPropagator:
             print("[RUNNING]Round %d stop condition: %s\n" % (iter_round, stop_cond))
             if iter_round > self.max_round or stop_cond is True:
                 break
-        # TODO for Chenlan
-
 
         self.post_processing()  # 后处理
 
         lpa_end = time.time()
         label_count = len(set(self.labels.values()))
 
-        print("[END]%d nodes with %d communities, %f seconds consumed" % (len(self.nodes), label_count, (lpa_end - lpa_start)))
+        print("[END]%d nodes with %d communities, %f seconds consumed" % (
+            len(self.nodes), label_count, (lpa_end - lpa_start)))
 
         # 模块度计算 Calculate modularity
         print("[MOD]Modularity is " + str(community_louvain.modularity(self.labels, self.graph)))

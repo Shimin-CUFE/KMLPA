@@ -69,7 +69,7 @@ def plot_printer(graph, labels):
     for key in labels:
         merge_label = str(key) + "@" + str(labels[key])
         new_labels.update({key: merge_label})
-    nx.draw_networkx_labels(graph, layout, new_labels, font_size=8, font_color="r", font_weight="bold")
+    # nx.draw_networkx_labels(graph, layout, new_labels, font_size=8, font_color="r", font_weight="bold")
     # 导出：选择立即显示（show）或保存（savefig）
     plt.show()
     # plt.savefig("..\\output\\final.png")
