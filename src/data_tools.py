@@ -6,6 +6,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from texttable import Texttable
+from networkx.generators.community import LFR_benchmark_graph
 
 
 def argument_printer(args):
@@ -33,7 +34,7 @@ def graph_reader(input_path):
     elif input_path.endswith(".gml"):
         graph = nx.read_gml(input_path, label=None)
     else:
-        graph = None
+        graph = LFR_benchmark_graph(250, 3, 1.5, 0.1, average_degree=5, min_community=10)
     return graph
 
 
@@ -69,7 +70,7 @@ def plot_printer(graph, labels):
     for key in labels:
         merge_label = str(key) + "@" + str(labels[key])
         new_labels.update({key: merge_label})
-    # nx.draw_networkx_labels(graph, layout, new_labels, font_size=8, font_color="r", font_weight="bold")
+    nx.draw_networkx_labels(graph, layout, new_labels, font_size=8, font_color="r", font_weight="bold")
     # 导出：选择立即显示（show）或保存（savefig）
     plt.show()
     # plt.savefig("..\\output\\final.png")
