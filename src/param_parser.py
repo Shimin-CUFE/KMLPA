@@ -16,12 +16,12 @@ def parameter_parser():
 
     parser.add_argument("--input",
                         nargs="?",
-                        default=project_path + "\\data\\dolphins.gml",
+                        default=project_path + "\\data\\football.gmltest",
                         help="Input graph path.")
 
     parser.add_argument("--assignment-output",
                         nargs="?",
-                        default=project_path + "\\output\\dolphins.json",
+                        default=project_path + "\\output\\test.json",
                         help="Assignment path.")
 
     parser.add_argument("--weighting",

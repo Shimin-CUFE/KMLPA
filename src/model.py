@@ -31,6 +31,10 @@ class LabelPropagator:
         print("[INIT]Initialize start")
         self.args = args
         self.graph = graph
+        # 处理自接节点
+        for (u, v) in self.graph.edges:
+            if u == v:
+                self.graph.remove_edge(u, v)
         self.nodes = [node for node in graph.nodes()]
         self.labels = {node: node for node in self.nodes}
         self.degree = dict(self.graph.degree)
@@ -86,14 +90,12 @@ class LabelPropagator:
                     graphReplica.remove_node(Nodes[num])
                     KIterations[Nodes[num]] = iteration
             iteration += 1
-
         # 更新标签字典self.labels
         a = np.array(list(KIterations.values()))
         p = np.percentile(a, 25)  # 截取标签分位数
         for node in self.nodes:
             if KIterations[node] < p:
                 self.labels[node] = None
-
         # 使用熵权法计算影响力，倒序排序部分
         weight = ewm_weight(KIterations, self.degree)
         result = []
@@ -134,7 +136,8 @@ class LabelPropagator:
                             else:
                                 dimout_max[neighbor_label] = 0
             dimin /= 2
-            if dimout==0:
+            if dimout == 0:
+                coh.append(0)
                 continue
             else:
                 coh.append(dimin / dimout)
@@ -205,14 +208,21 @@ class LabelPropagator:
             print("[RUNNING]Label propagation round: %s" % str(iter_round))
             # 标签传播循环，从邻居节点中挑选标签
             for node in self.nodes:
-                neighbors = self.graph.neighbors(node)
-                self.labels[node] = self.pick_neighbor(node, neighbors)
+                # if self.degree[node] != len(list(self.graph.neighbors(node))):
+                #     print("what")
+                #     print(node)
+                #     print(self.degree[node])
+                #     print(list(self.graph.neighbors(node)))
+                if self.degree[node] == 0:
+                    self.labels[node] = node
+                else:
+                    neighbors = self.graph.neighbors(node)
+                    self.labels[node] = self.pick_neighbor(node, neighbors)
             # 判断停止条件与迭代轮数
             stop_cond = self.estimate_stop_cond()
             print("[RUNNING]Round %d stop condition: %s\n" % (iter_round, stop_cond))
             if iter_round > self.max_round or stop_cond is True:
                 break
-
         self.post_processing()  # 后处理
 
         lpa_end = time.time()
@@ -227,9 +237,6 @@ class LabelPropagator:
 
         # # TODO
         # # 输出社区数据
-        # t = Texttable()
-        # t.set_deco(Texttable.HEADER)
-        # t.add_rows([["Community", "Nodes", "Edges", ]])
 
         # 绘图 Draw plot
         choice = input("[PLOT]Print plot? (y/n): ")
