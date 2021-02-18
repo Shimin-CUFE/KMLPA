@@ -34,7 +34,7 @@ def graph_reader(input_path):
     elif input_path.endswith(".gml"):
         graph = nx.read_gml(input_path, label=None)
     else:
-        graph = nx.Graph(LFR_benchmark_graph(1000, 3, 1.5, 0.05, average_degree=15, max_degree=50, min_community=20, max_community=50, seed=10))
+        graph = nx.Graph(LFR_benchmark_graph(1000, 3, 1.5, 0.1, average_degree=15, max_degree=50, min_community=20, max_community=50, seed=10))
     return graph
 
 

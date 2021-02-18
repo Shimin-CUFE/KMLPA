@@ -38,6 +38,10 @@ class LabelPropagator:
         self.nodes = [node for node in graph.nodes()]
         self.labels = {node: node for node in self.nodes}
         self.degree = dict(self.graph.degree)
+        # 真实社区划分
+        # football网络：参数改为value
+        # [暂时不可用]LFR benchmark network: 参数改为community
+        self.community = nx.get_node_attributes(self.graph, "value")
         self.max_round = args.rounds
         self.weight_setup(args.weighting)
         print("[INIT]Initialize done\n")
@@ -208,11 +212,11 @@ class LabelPropagator:
             print("[RUNNING]Label propagation round: %s" % str(iter_round))
             # 标签传播循环，从邻居节点中挑选标签
             for node in self.nodes:
-                # if self.degree[node] != len(list(self.graph.neighbors(node))):
-                #     print("what")
-                #     print(node)
-                #     print(self.degree[node])
-                #     print(list(self.graph.neighbors(node)))
+                if self.degree[node] != len(list(self.graph.neighbors(node))):
+                    print("what")
+                    print(node)
+                    print(self.degree[node])
+                    print(list(self.graph.neighbors(node)))
                 if self.degree[node] == 0:
                     self.labels[node] = node
                 else:
