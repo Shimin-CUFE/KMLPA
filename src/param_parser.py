@@ -16,13 +16,13 @@ def parameter_parser():
 
     parser.add_argument("--input",
                         nargs="?",
-                        default=project_path + "\\data\\football.gml",
+                        default=project_path + "\\data\\facebook.csv",
                         help="Input graph path.")
 
-    parser.add_argument("--assignment-output",
+    parser.add_argument("--output",
                         nargs="?",
-                        default=project_path + "\\output\\football.json",
-                        help="Assignment path.")
+                        default=project_path + "\\output\\facebook.json",
+                        help="JSON output path.")
 
     parser.add_argument("--weighting",
                         nargs="?",
@@ -31,12 +31,12 @@ def parameter_parser():
 
     parser.add_argument("--rounds",
                         type=int,
-                        default=10,
-                        help="Number of iterations. Default is 10.")
+                        default=20,
+                        help="Number of iterations. Default is 20.")
 
     parser.add_argument("--seed",
                         type=int,
-                        default=42,
-                        help="Random seed. Default is 42.")
+                        default=10,
+                        help="Random seed. Default is 10.")
 
     return parser.parse_args()

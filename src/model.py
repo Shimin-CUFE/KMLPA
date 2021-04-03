@@ -1,5 +1,4 @@
 """Model class label propagation."""
-# 需要scipy库 Require scipy
 
 import random
 import time
@@ -38,9 +37,9 @@ class LabelPropagator:
         self.nodes = [node for node in graph.nodes()]
         self.labels = {node: node for node in self.nodes}
         self.degree = dict(self.graph.degree)
-        # 真实社区划分
-        # football网络：参数改为value
-        # [暂时不可用]LFR benchmark network: 参数改为community
+        # self.community: 真实社区划分
+        # 若输入为football网络：参数改为value
+        # [暂时不可用]若输入为LFR benchmark network: 参数改为community
         self.community = nx.get_node_attributes(self.graph, "value")
         self.max_round = args.rounds
         self.weight_setup(args.weighting)
@@ -48,6 +47,7 @@ class LabelPropagator:
 
     def weight_setup(self, weighting):
         """
+        边权重生成方法
         Calculating the edge weights.
         :param weighting: Type of edge weights.
         """
@@ -69,43 +69,30 @@ class LabelPropagator:
         """
         print("[PRE]Start pre processing")
         # K核分解部分
-        # Kshell字典: {node:K-shell值}
-        """
-        graphReplica = self.graph.copy()
-        Kshell = {node: 0 for node in self.nodes}
-        while len(graphReplica.nodes) != 0:
-            Nodes = list(graphReplica.nodes)
-            Degrees = list(dict(graphReplica.degree).values())
-            for num in range(len(Degrees)):
-                if Degrees[num] == min(Degrees):
-                    graphReplica.remove_node(Nodes[num])
-                    Kshell[Nodes[num]] = min(Degrees)
-        """
-
-        # KIterations字典:{node:K核迭代次数}
-        graphReplica = self.graph.copy()
-        KIterations = {node: 0 for node in self.nodes}
+        # k_iterations字典: {node: K核迭代次数}
+        graph_replica = self.graph.copy()
+        k_iterations = {node: 0 for node in self.nodes}
         iteration = 1
-        while len(graphReplica.nodes) != 0:
-            Nodes = list(graphReplica.nodes)
-            Degrees = list(dict(graphReplica.degree).values())
-            for num in range(len(Degrees)):
-                if Degrees[num] == min(Degrees):
-                    graphReplica.remove_node(Nodes[num])
-                    KIterations[Nodes[num]] = iteration
+        while len(graph_replica.nodes) != 0:
+            nodes = list(graph_replica.nodes)
+            degrees = list(dict(graph_replica.degree).values())
+            for num in range(len(degrees)):
+                if degrees[num] == min(degrees):
+                    graph_replica.remove_node(nodes[num])
+                    k_iterations[nodes[num]] = iteration
             iteration += 1
-        # 更新标签字典self.labels
-        a = np.array(list(KIterations.values()))
-        p = np.percentile(a, 25)  # 截取标签分位数
+        # 更新标签字典self.labels，给部分节点赋予初始标签
+        a = np.array(list(k_iterations.values()))
+        p = np.percentile(a, 25)  # [模型参数A]截取标签分位数
         for node in self.nodes:
-            if KIterations[node] < p:
+            if k_iterations[node] < p:
                 self.labels[node] = None
         # 使用熵权法计算影响力，倒序排序部分
-        weight = ewm_weight(KIterations, self.degree)
+        weight = ewm_weight(k_iterations, self.degree)
         result = []
         length = len(self.degree)
         for i in range(length):
-            inf = list(KIterations.values())[i] * weight[0] + list(self.degree.values())[i] * weight[1]
+            inf = list(k_iterations.values())[i] * weight[0] + list(self.degree.values())[i] * weight[1]
             result.append(inf)
         sortres = list(dict(sorted(dict(zip(self.nodes, result)).items(), key=lambda x: x[1], reverse=True)).keys())
         self.nodes = sortres
@@ -126,9 +113,7 @@ class LabelPropagator:
             dimin = 0
             dimout = 0
             for node in self.nodes:
-                if self.labels[node] != label_set[i]:
-                    continue
-                else:
+                if self.labels[node] == label_set[i]:
                     for neighbor in self.graph.neighbors(node):
                         neighbor_label = self.labels[neighbor]
                         if neighbor_label == label_set[i]:
@@ -145,9 +130,7 @@ class LabelPropagator:
                 continue
             else:
                 coh.append(dimin / dimout)
-            if coh[i] > t:
-                continue
-            else:  # 合并社区
+            if coh[i] <= t:  # 合并社区
                 for node in self.nodes:
                     if self.labels[node] != label_set[i]:
                         continue
@@ -193,7 +176,7 @@ class LabelPropagator:
             count_items = list(count.items())
             count_items.sort(key=lambda x: x[1], reverse=True)
             new_labels = [k for k, v in count_items if v == count_items[0][1]]
-            # 停止条件：没有新的label变化
+            # 停止条件：没有新的label发生变化
             if self.labels[node] not in new_labels:
                 return False
         return True
@@ -212,11 +195,6 @@ class LabelPropagator:
             print("[RUNNING]Label propagation round: %s" % str(iter_round))
             # 标签传播循环，从邻居节点中挑选标签
             for node in self.nodes:
-                if self.degree[node] != len(list(self.graph.neighbors(node))):
-                    print("what")
-                    print(node)
-                    print(self.degree[node])
-                    print(list(self.graph.neighbors(node)))
                 if self.degree[node] == 0:
                     self.labels[node] = node
                 else:
@@ -232,15 +210,14 @@ class LabelPropagator:
         lpa_end = time.time()
         label_count = len(set(self.labels.values()))
 
-        print("[END]%d nodes with %d communities, %f seconds consumed" % (
-            len(self.nodes), label_count, (lpa_end - lpa_start)))
+        print("[END]%d nodes with %d communities, %f seconds and %d rounds consumed" % (
+            len(self.nodes), label_count, (lpa_end - lpa_start), iter_round))
 
         # 模块度计算 Calculate modularity
         print("[MOD]Modularity is " + str(community_louvain.modularity(self.labels, self.graph)))
         # print(modularity(self.graph, self.labels)) # 循环计算法较慢，弃用
 
-        # # TODO
-        # # 输出社区数据
+        # TODO: 输出社区数据
 
         # 绘图 Draw plot
         choice = input("[PLOT]Print plot? (y/n): ")
@@ -248,6 +225,6 @@ class LabelPropagator:
             plot_printer(self.graph, self.labels)
 
         # 输出结果至JSON文件 Dump result
-        json_dumper(self.labels, self.args.assignment_output)
+        json_dumper(self.labels, self.args.output)
 
         print("[FINISH]Finish running of Label propagation model")
