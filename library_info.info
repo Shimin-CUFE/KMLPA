@@ -1,8 +1,0 @@
-- networkx 2.5
-- scipy 1.6.0
-- pandas 1.2.0
-- texttable 1.6.3
-- tqdm 4.56.0
-- matplotlib 3.3.3
-- numpy 1.19.5
-- python_louvain 0.15 (NOTE: import as community)

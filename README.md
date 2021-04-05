@@ -1,9 +1,12 @@
 # Modified Label Propagation Algorithm, KMLPA
-A Python implementation of LPA, which is modified with a series of pre-process and post-process.  
-This model is built on the basis of **venedekrozemberczki/LabelPropagation**. 
+A Python implementation of Label Propagation Algorithm, which is modified with a series of pre-processing and post-processing.  
+This model is built on the basis of **benedekrozemberczki/LabelPropagation**. 
 
 ## Brief
-
+This model is the implementation of our improved LPA, which is modified by several method to enhance the accuracy of community clustering. 
+- At pre-processing phase: K-core decompose and entropy weight method are used to generate comprehensive influence of each node, then partially initialize nodes with origin labels. Threshold 1 are set here to control initialize scale. 
+- At updating phase: change update sequence with influences. 
+- At post-processing phase: community merge is used to merge small cluster into big community. Threshold 2 are set here to control merge proportion. 
 
 ## Requirements
 The codebase is implemented in `Python 3.9.1`. Package versions used for development are just below.
@@ -23,8 +26,8 @@ igraph  0.1.11
 snap    0.5  
 ```
 
-## Datasets (/data/*)
-We have collected several datasets to test our model, which is shown below. 
+## Datasets
+We have collected several datasets to test our model (at `/data/*`), which is shown below. 
 ```
 [Test dataset]
 d.csv: x nodes y edges, Politician network
@@ -42,8 +45,8 @@ football.gml: x nodes y edges, football network
 jianshu.csv: x nodes, y edges. User following network from jianshu.com
 ```
 We also add LFR benchmark network, which can be called only if the input path has a illegal extension as the parameter ending (extension in addition to `*.csv` and `*.gml`, such as: `*.calllfr`). 
-```sh
-$ python src/run_lpa.py -input 'path//lfr_network.calllfr'
+```bash
+project_path> python src/run_lpa.py -input 'path//lfr_network.calllfr'
 ```
 
 
@@ -52,18 +55,18 @@ $ python src/run_lpa.py -input 'path//lfr_network.calllfr'
 #### Model options
 ```
   --input               STR    Input graph path.                          Default is `\\data\\facebook.csv`.                                     
-  --assignment-output   STR    Node-cluster assignment dictionary path.   Default is `\\output\\facebook.json`.
-  --weighing            STR    Weighting strategy.                        Default is `overlap`.
-  --rounds              INT    Number of iterations.                      Default is 30.
-  --seed                INT    Initial seed           .                   Default is 42.
+  --output   STR    Node-cluster assignment dictionary (JSON format) path.   Default is `\\output\\facebook.json`.
+  --weighing            STR    Weighting strategy.                        Default is `unit`.
+  --rounds              INT    Maximum number of iterations.                      Default is 20.
+  --seed                INT    Initial seed (unused).                              Default is 10.
 ```
 - Or run `run_lpa.py` at command prompt with parameter (optional). 
-```cmd
+```bash
 project_path> python src/run_lpa.py --input [input_path]
 ```
-```cmd
+```bash
 project_path> python src/run_lpa.py --weighting overlap
 ```
-```cmd
+```bash
 project_path> python src/run_lpa.py --seed 32
 ```

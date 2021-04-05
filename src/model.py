@@ -210,14 +210,14 @@ class LabelPropagator:
         lpa_end = time.time()
         label_count = len(set(self.labels.values()))
 
-        print("[END]%d nodes with %d communities, %f seconds and %d rounds consumed" % (
-            len(self.nodes), label_count, (lpa_end - lpa_start), iter_round))
+        # TODO: 输出社区数据
+        print("[END]%d nodes, %d edges with %d communities, %f seconds and %d rounds consumed" % (
+            len(self.nodes), len(self.graph.edges), label_count, (lpa_end - lpa_start), iter_round))
 
         # 模块度计算 Calculate modularity
         print("[MOD]Modularity is " + str(community_louvain.modularity(self.labels, self.graph)))
         # print(modularity(self.graph, self.labels)) # 循环计算法较慢，弃用
 
-        # TODO: 输出社区数据
 
         # 绘图 Draw plot
         choice = input("[PLOT]Print plot? (y/n): ")
