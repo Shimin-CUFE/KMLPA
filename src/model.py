@@ -218,7 +218,6 @@ class LabelPropagator:
         print("[MOD]Modularity is " + str(community_louvain.modularity(self.labels, self.graph)))
         # print(modularity(self.graph, self.labels)) # 循环计算法较慢，弃用
 
-
         # 绘图 Draw plot
         choice = input("[PLOT]Print plot? (y/n): ")
         if choice == "y" or choice == "Y":
