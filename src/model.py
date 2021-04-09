@@ -106,8 +106,7 @@ class LabelPropagator:
         print("[POST]Start post processing")
         label_set = list(set(self.labels.values()))
         coh = []
-        bridge = np.zeros(max(label_set) + 1)
-        dimout_max = list(bridge)
+        dimout_max = dict.fromkeys(label_set, 0)
         t = 0.7  # 设定一个阈值
         for i in range(len(set(self.labels.values()))):
             dimin = 0
@@ -120,10 +119,7 @@ class LabelPropagator:
                             dimin += 1
                         else:
                             dimout += 1
-                            if dimout_max[neighbor_label] >= 0:
-                                dimout_max[neighbor_label] += 1
-                            else:
-                                dimout_max[neighbor_label] = 0
+                            dimout_max[neighbor_label] += 1
             dimin /= 2
             if dimout == 0:
                 coh.append(0)
@@ -135,7 +131,7 @@ class LabelPropagator:
                     if self.labels[node] != label_set[i]:
                         continue
                     else:
-                        self.labels[node] = dimout_max.index(max(dimout_max))
+                        self.labels[node] = max(dimout_max, key=lambda x: dimout_max[x])
         print("[POST]End of post processing")
         pass
 
