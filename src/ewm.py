@@ -37,6 +37,7 @@ def ewm_weight(*inds):
     w = []
     for value in h:
         w.append((1 - value) / (len(h) - sum(h)))
+    # print(w)
     return w
 
 

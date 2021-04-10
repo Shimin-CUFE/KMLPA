@@ -4,13 +4,10 @@ import random
 import time
 
 import community as community_louvain
-from texttable import Texttable
-from tqdm import tqdm
 import numpy as np
 
 from data_tools import json_dumper, plot_printer
 from ewm import ewm_weight
-from modularity_calculator import modularity
 from weight import *
 
 
@@ -37,6 +34,7 @@ class LabelPropagator:
         self.nodes = [node for node in graph.nodes()]
         self.labels = {node: node for node in self.nodes}
         self.degree = dict(self.graph.degree)
+        self.centrality = nx.eigenvector_centrality(self.graph)  # 节点特征向量中心性
         # self.community: 真实社区划分
         # 若输入为football网络：参数改为value
         # [暂时不可用]若输入为LFR benchmark network: 参数改为community
@@ -88,11 +86,11 @@ class LabelPropagator:
             if k_iterations[node] < p:
                 self.labels[node] = None
         # 使用熵权法计算影响力，倒序排序部分
-        weight = ewm_weight(k_iterations, self.degree)
+        weight = ewm_weight(k_iterations, self.degree, self.centrality)
         result = []
         length = len(self.degree)
         for i in range(length):
-            inf = list(k_iterations.values())[i] * weight[0] + list(self.degree.values())[i] * weight[1]
+            inf = list(k_iterations.values())[i] * weight[0] + list(self.degree.values())[i] * weight[1] + list(self.centrality.values())[i] * weight[1]
             result.append(inf)
         sortres = list(dict(sorted(dict(zip(self.nodes, result)).items(), key=lambda x: x[1], reverse=True)).keys())
         self.nodes = sortres
@@ -106,13 +104,16 @@ class LabelPropagator:
         print("[POST]Start post processing")
         label_set = list(set(self.labels.values()))
         coh = []
+        # count = [0 for i in range(len(set(self.labels.values())))]
         dimout_max = dict.fromkeys(label_set, 0)
         t = 0.7  # 设定一个阈值
+        merge_count = 0
         for i in range(len(set(self.labels.values()))):
             dimin = 0
             dimout = 0
             for node in self.nodes:
                 if self.labels[node] == label_set[i]:
+                    # count[i] += 1
                     for neighbor in self.graph.neighbors(node):
                         neighbor_label = self.labels[neighbor]
                         if neighbor_label == label_set[i]:
@@ -121,18 +122,23 @@ class LabelPropagator:
                             dimout += 1
                             dimout_max[neighbor_label] += 1
             dimin /= 2
+            # print("Community-%d has %d edges, %d nodes" % (i, dimin, count[i]))
             if dimout == 0:
                 coh.append(0)
                 continue
             else:
                 coh.append(dimin / dimout)
             if coh[i] <= t:  # 合并社区
+                merge_count += 1
                 for node in self.nodes:
                     if self.labels[node] != label_set[i]:
                         continue
                     else:
-                        self.labels[node] = max(dimout_max, key=lambda x: dimout_max[x])
-        print("[POST]End of post processing")
+                        new_community = max(dimout_max, key=lambda x: dimout_max[x])
+                        print("Merging node-%s at community-%s into community-%s. " % (node, self.labels[node], new_community))
+                        self.labels[node] = new_community
+        print("Merged %d communities. " % merge_count)
+        print("[POST]End of post processing\n")
         pass
 
     def pick_neighbor(self, source, neighbors):
@@ -198,7 +204,7 @@ class LabelPropagator:
                     self.labels[node] = self.pick_neighbor(node, neighbors)
             # 判断停止条件与迭代轮数
             stop_cond = self.estimate_stop_cond()
-            print("[RUNNING]Round %d stop condition: %s\n" % (iter_round, stop_cond))
+            print("[RUNNING]Round %d stop condition: %s" % (iter_round, stop_cond))
             if iter_round > self.max_round or stop_cond is True:
                 break
         self.post_processing()  # 后处理
@@ -209,9 +215,13 @@ class LabelPropagator:
         # TODO: 输出社区数据
         print("[END]%d nodes, %d edges with %d communities, %f seconds and %d rounds consumed" % (
             len(self.nodes), len(self.graph.edges), label_count, (lpa_end - lpa_start), iter_round))
+        print("Graph diameter: %d" % nx.diameter(self.graph))  # 返回图G的直径（最长最短路径的长度）
+        print("Graph average SP length: %f" % nx.average_shortest_path_length(self.graph))  # 返回图G所有节点间平均最短路径长度。
+        print("Graph average clustering: %f" % nx.average_clustering(self.graph))  # 平均群聚系数
+        # node_clustering = nx.clustering(self.graph)  # 节点群聚系数
 
         # 模块度计算 Calculate modularity
-        print("[MOD]Modularity is " + str(community_louvain.modularity(self.labels, self.graph)))
+        print("Modularity: %f" % community_louvain.modularity(self.labels, self.graph))
         # print(modularity(self.graph, self.labels)) # 循环计算法较慢，弃用
 
         # 绘图 Draw plot
