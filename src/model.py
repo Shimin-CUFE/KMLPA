@@ -81,7 +81,12 @@ class LabelPropagator:
             iteration += 1
         # 更新标签字典self.labels，给部分节点赋予初始标签
         a = np.array(list(k_iterations.values()))
-        p = np.percentile(a, 25)  # [模型参数A]截取标签分位数
+        b = []
+        for i in a:
+            if i not in b:
+                b.append(i)
+        # TODO 加判断
+        p = np.percentile(b, 25)  # [模型参数A]截取标签分位数
         for node in self.nodes:
             if k_iterations[node] < p:
                 self.labels[node] = None
