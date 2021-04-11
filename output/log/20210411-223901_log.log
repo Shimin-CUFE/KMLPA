@@ -1,0 +1,30 @@
++-----------+---------------------------------------------+
+|   Input   |  D:\Study\Python\Workspace\LPA\data\d.csv   |
++===========+=============================================+
+| Output    | D:\Study\Python\Workspace\LPA\output\d.json |
++-----------+---------------------------------------------+
+| Rounds    | 20                                          |
++-----------+---------------------------------------------+
+| Seed      | 10                                          |
++-----------+---------------------------------------------+
+| Weighting | unit                                        |
++-----------+---------------------------------------------+
+[INIT]Initialization start
+[INIT]Initialization done
+
+[PRE]Start pre-processing
+[PRE]End of pre-processing
+[RUNNING]Label propagation round: 1
+[RUNNING]Round 1 stop condition: False
+[RUNNING]Label propagation round: 2
+[RUNNING]Round 2 stop condition: False
+[RUNNING]Label propagation round: 3
+[RUNNING]Round 3 stop condition: True
+[POST]Start post-processing
+Merged 0 communities. 
+[POST]End of post-processing
+
+[RES]62 nodes, 159 edges with 4 communities, 0.003989 seconds and 3 rounds consumed
+Graph average clustering: 0.258958
+Modularity: 0.505874
+[PLOT]Print plot? (y/n): [FINISH]Finish running of Label propagation model
