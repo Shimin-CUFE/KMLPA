@@ -194,7 +194,7 @@ class LabelPropagator:
         """
         lpa_start = time.time()
 
-        # self.pre_processing()  # 预处理
+        self.pre_processing()  # 预处理
         iter_round = 0
         while True:
             iter_round += 1
@@ -211,7 +211,7 @@ class LabelPropagator:
             print("[RUNNING]Round %d stop condition: %s" % (iter_round, stop_cond))
             if iter_round > self.max_round or stop_cond is True:
                 break
-        # self.post_processing()  # 后处理
+        self.post_processing()  # 后处理
 
         lpa_end = time.time()
         label_count = len(set(self.labels.values()))

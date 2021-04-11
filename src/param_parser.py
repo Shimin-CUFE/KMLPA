@@ -16,12 +16,12 @@ def parameter_parser():
 
     parser.add_argument("--input",
                         nargs="?",
-                        default=project_path + "\\data\\twitter.csv",
+                        default=project_path + "\\data\\d.csv",
                         help="Input graph path.")
 
     parser.add_argument("--output",
                         nargs="?",
-                        default=project_path + "\\output\\twitter_LPA.json",
+                        default=project_path + "\\output\\d.json",
                         help="JSON output path.")
 
     parser.add_argument("--weighting",
@@ -40,3 +40,7 @@ def parameter_parser():
                         help="Random seed. Default is 10.")
 
     return parser.parse_args()
+
+
+def path():
+    return project_path
