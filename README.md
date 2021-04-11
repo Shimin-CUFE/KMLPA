@@ -1,6 +1,6 @@
 # Modified Label Propagation Algorithm, KMLPA
 A Python implementation of Label Propagation Algorithm, which is modified with a series of pre-processing and post-processing.  
-This model is built on the basis of **benedekrozemberczki/LabelPropagation**. 
+This model is built on the basis of [benedekrozemberczki/LabelPropagation](https://github.com/benedekrozemberczki/LabelPropagation). 
 
 ## Brief
 This model is the implementation of our improved LPA, which is modified by several method to enhance the accuracy of community clustering. 
@@ -31,6 +31,7 @@ We have collected several datasets to test our model (at `/data/*`), which is sh
 ```
 [Test dataset]
 d.csv: x nodes y edges, Politician network
+politician_edges.csv: 
 
 [Standford large network datasets]
 facebook.csv: x nodes y edges, 
@@ -42,7 +43,10 @@ karate.gml: x nodes y edges, karate network
 football.gml: x nodes y edges, football network
 
 [Dataset from our web spider]
-jianshu.csv: x nodes, y edges. User following network from jianshu.com
+jianshu_v0.csv: x nodes, y edges. User following network from jianshu.com
+jianshu_v1.csv: x nodes, y edges. User following network from jianshu.com
+jianshu_v2.csv: x nodes, y edges. User following network from jianshu.com
+jianshu_v3.csv: x nodes, y edges. User following network from jianshu.com
 ```
 We also add LFR benchmark network, which can be called only if the input path has a illegal extension as the parameter ending (extension in addition to `*.csv` and `*.gml`, such as: `*.calllfr`). 
 ```bash
@@ -55,7 +59,7 @@ project_path> python src/run_lpa.py -input 'path//lfr_network.calllfr'
 #### Model options
 ```
   --input               STR    Input graph path.                          Default is `\\data\\facebook.csv`.                                     
-  --output   STR    Node-cluster assignment dictionary (JSON format) path.   Default is `\\output\\facebook.json`.
+  --output              STR    Node-cluster assignment dictionary (JSON format) path.   Default is `\\output\\facebook.json`.
   --weighing            STR    Weighting strategy.                        Default is `unit`.
   --rounds              INT    Maximum number of iterations.                      Default is 20.
   --seed                INT    Initial seed (unused).                              Default is 10.
