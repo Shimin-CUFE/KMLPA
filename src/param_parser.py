@@ -16,12 +16,12 @@ def parameter_parser():
 
     parser.add_argument("--input",
                         nargs="?",
-                        default=project_path + "\\data\\jianshu_v3.csv",
+                        default=project_path + "\\data\\twitter.csv",
                         help="Input graph path.")
 
     parser.add_argument("--output",
                         nargs="?",
-                        default=project_path + "\\output\\jianshu_v3.json",
+                        default=project_path + "\\output\\twitter_LPA.json",
                         help="JSON output path.")
 
     parser.add_argument("--weighting",

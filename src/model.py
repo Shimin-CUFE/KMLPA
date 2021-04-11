@@ -24,7 +24,7 @@ class LabelPropagator:
         :param graph: NetworkX object.
         :param args: Arguments object.
         """
-        print("[INIT]Initialize start")
+        print("[INIT]Initialization start")
         self.args = args
         self.graph = graph
         # 处理自接节点
@@ -41,7 +41,7 @@ class LabelPropagator:
         self.community = nx.get_node_attributes(self.graph, "value")
         self.max_round = args.rounds
         self.weight_setup(args.weighting)
-        print("[INIT]Initialize done\n")
+        print("[INIT]Initialization done\n")
 
     def weight_setup(self, weighting):
         """
@@ -65,7 +65,7 @@ class LabelPropagator:
         预处理部分：综合K核分解与节点度数的影响力认定
         :return: None
         """
-        print("[PRE]Start pre processing")
+        print("[PRE]Start pre-processing")
         # K核分解部分
         # k_iterations字典: {node: K核迭代次数}
         graph_replica = self.graph.copy()
@@ -85,7 +85,6 @@ class LabelPropagator:
         for i in a:
             if i not in b:
                 b.append(i)
-        # TODO 加判断
         p = np.percentile(b, 25)  # [模型参数A]截取标签分位数
         for node in self.nodes:
             if k_iterations[node] < p:
@@ -99,14 +98,14 @@ class LabelPropagator:
             result.append(inf)
         sortres = list(dict(sorted(dict(zip(self.nodes, result)).items(), key=lambda x: x[1], reverse=True)).keys())
         self.nodes = sortres
-        print("[PRE]End of pre processing")
+        print("[PRE]End of pre-processing")
 
     def post_processing(self):
         """
         后处理部分：合并孤岛社区
         :return: None
         """
-        print("[POST]Start post processing")
+        print("[POST]Start post-processing")
         label_set = list(set(self.labels.values()))
         coh = []
         # count = [0 for i in range(len(set(self.labels.values())))]
@@ -143,7 +142,7 @@ class LabelPropagator:
                         print("Merging node-%s at community-%s into community-%s. " % (node, self.labels[node], new_community))
                         self.labels[node] = new_community
         print("Merged %d communities. " % merge_count)
-        print("[POST]End of post processing\n")
+        print("[POST]End of post-processing\n")
         pass
 
     def pick_neighbor(self, source, neighbors):
@@ -195,7 +194,7 @@ class LabelPropagator:
         """
         lpa_start = time.time()
 
-        self.pre_processing()  # 预处理
+        # self.pre_processing()  # 预处理
         iter_round = 0
         while True:
             iter_round += 1
@@ -212,16 +211,16 @@ class LabelPropagator:
             print("[RUNNING]Round %d stop condition: %s" % (iter_round, stop_cond))
             if iter_round > self.max_round or stop_cond is True:
                 break
-        self.post_processing()  # 后处理
+        # self.post_processing()  # 后处理
 
         lpa_end = time.time()
         label_count = len(set(self.labels.values()))
 
         # TODO: 输出社区数据
-        print("[END]%d nodes, %d edges with %d communities, %f seconds and %d rounds consumed" % (
+        print("[RES]%d nodes, %d edges with %d communities, %f seconds and %d rounds consumed" % (
             len(self.nodes), len(self.graph.edges), label_count, (lpa_end - lpa_start), iter_round))
-        print("Graph diameter: %d" % nx.diameter(self.graph))  # 返回图G的直径（最长最短路径的长度）
-        print("Graph average SP length: %f" % nx.average_shortest_path_length(self.graph))  # 返回图G所有节点间平均最短路径长度。
+        # print("Graph diameter: %d" % nx.diameter(self.graph))  # 返回图G的直径（最长最短路径的长度）
+        # print("Graph average SP length: %f" % nx.average_shortest_path_length(self.graph))  # 返回图G所有节点间平均最短路径长度。
         print("Graph average clustering: %f" % nx.average_clustering(self.graph))  # 平均群聚系数
         # node_clustering = nx.clustering(self.graph)  # 节点群聚系数
 
@@ -234,7 +233,7 @@ class LabelPropagator:
         if choice == "y" or choice == "Y":
             plot_printer(self.graph, self.labels)
 
-        # 输出结果至JSON文件 Dump result
+        # 输出社区划分结果至JSON文件 Dump result
         json_dumper(self.labels, self.args.output)
 
         print("[FINISH]Finish running of Label propagation model")
