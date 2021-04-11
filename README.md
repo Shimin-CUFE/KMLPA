@@ -1,12 +1,12 @@
-# Modified Label Propagation Algorithm, KMLPA
-A Python implementation of Label Propagation Algorithm, which is modified with a series of pre-processing and post-processing.  
-This model is built on the basis of [benedekrozemberczki/LabelPropagation](https://github.com/benedekrozemberczki/LabelPropagation). 
+# KMLPA, An Improved Label Propagation Algorithm
+A Python implementation of Label Propagation Algorithm, which is modified with a series of pre-processing and post-processing operations.  
+This algorithm model is built on the basis of [benedekrozemberczki/LabelPropagation](https://github.com/benedekrozemberczki/LabelPropagation). 
 
 ## Brief
 This model is the implementation of our improved LPA, which is modified by several method to enhance the accuracy of community clustering. 
-- At pre-processing phase: K-core decompose and entropy weight method are used to generate comprehensive influence of each node, then partially initialize nodes with origin labels. Threshold 1 are set here to control initialize scale. 
-- At updating phase: change update sequence with influences. 
-- At post-processing phase: community merge is used to merge small cluster into big community. Threshold 2 are set here to control merge proportion. 
+- At pre-processing phase: K-core decompose iteration numbers are used to partially initialize nodes with origin labels,then degree and eigenvector centrality are added to generate comprehensive influence of each node with entropy weight method. Threshold 1 are set here to control initialize scale. 
+- At updating phase: change update sequence with comprehensive influences. 
+- At post-processing phase: a community merge method is used to merge small cluster into big community. Threshold 2 are set here to control merge proportion. 
 
 ## Requirements
 The codebase is implemented in `Python 3.9.1`. Package versions used for development are just below.
