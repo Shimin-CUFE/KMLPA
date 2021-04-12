@@ -1,5 +1,5 @@
 # Improved label propagation algorithm, KMLPA
-A Python implementation of Label Propagation Algorithm that modified with a series of pre-processing and post-processing operations, which can be used to find community in large social network.  
+A Python implementation of Label Propagation Algorithm that modified with a series of pre-processing and post-processing operations, which can be used to discover communities in large social network.  
 This algorithm model is built on the basis of [benedekrozemberczki/LabelPropagation](https://github.com/benedekrozemberczki/LabelPropagation). 
 
 ## Brief
