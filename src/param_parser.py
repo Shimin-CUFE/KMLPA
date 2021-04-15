@@ -16,13 +16,8 @@ def parameter_parser():
 
     parser.add_argument("--input",
                         nargs="?",
-                        default=project_path + "\\data\\d.csv",
+                        default=project_path + "\\data\\jianshu_v3.csv",
                         help="Input graph path.")
-
-    parser.add_argument("--output",
-                        nargs="?",
-                        default=project_path + "\\output\\d.json",
-                        help="JSON output path.")
 
     parser.add_argument("--weighting",
                         nargs="?",

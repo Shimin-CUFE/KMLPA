@@ -1,12 +1,17 @@
 """Tools for data reading and writing."""
 
 import json
+import time
+
 import pandas as pd
+import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from texttable import Texttable
 from networkx.generators.community import LFR_benchmark_graph
+
+t = time.strftime("%Y%m%d-%H%M%S", time.localtime())
 
 
 def argument_printer(args):
@@ -42,15 +47,24 @@ def graph_reader(input_path):
     return graph
 
 
-def json_dumper(data, path):
+def json_dumper(data):
     """
     保存社区划分数据至JSON文件
     Function to save a JSON to disk.
     :param data: Dictionary of cluster memberships.
     :param path: Path for dumping the JSON.
     """
-    with open(path, 'w') as outfile:
+    with open("..\\output\\json\\" + t + "_json.json", 'w') as outfile:
         json.dump(data, outfile)
+
+
+def csv_dumper(data):
+    """
+    保存网络数据至CSV文件
+    :param data: 指标列表
+    :param path: 保存路径
+    """
+    np.savetxt("..\\output\\csv\\" + t + "_csv.csv", data, delimiter=',')
 
 
 def plot_printer(graph, labels):
@@ -61,10 +75,10 @@ def plot_printer(graph, labels):
     :param labels: Labels of Nodes
     """
     # # 设置参数：图片大小与颜色
-    # width = 30
-    # height = 20
-    # dpi = 150
-    # plt.figure(figsize=(width, height), dpi=dpi)
+    width = 30
+    height = 20
+    dpi = 150
+    plt.figure(figsize=(width, height), dpi=dpi)
 
     # 绘图：分别绘制节点-边-标签
     # cmap = cm.get_cmap('viridis', (len(labels.values()) + 1))
@@ -78,6 +92,6 @@ def plot_printer(graph, labels):
         new_labels.update({key: merge_label})
     # nx.draw_networkx_labels(graph, layout, new_labels, font_size=8, font_color="r", font_weight="bold")
     # 导出：选择立即显示（show）或保存（savefig）
-    plt.show()
-    # plt.savefig("..\\output\\images\\KMLPA_plt.png")
+    # plt.show()
+    plt.savefig("..\\output\\images\\" + t + "_figure.png")
     # plt.close()

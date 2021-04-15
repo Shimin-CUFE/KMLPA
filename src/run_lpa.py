@@ -35,7 +35,7 @@ def create_and_run_model(args):
 if __name__ == "__main__":
     t = time.strftime("%Y%m%d-%H%M%S", time.localtime())
     sys.stdout = Logger(path() + "\\output\\log\\" + t + "_log.log", sys.stdout)
-    sys.stderr = Logger(path() + "\\output\\log\\" + t + "_error.log", sys.stderr)
+    # sys.stderr = Logger(path() + "\\output\\log\\" + t + "_error.log", sys.stderr)
     args = parameter_parser()
     argument_printer(args)
     create_and_run_model(args)

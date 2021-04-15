@@ -6,7 +6,7 @@ import time
 import community as community_louvain
 import numpy as np
 
-from data_tools import json_dumper, plot_printer
+from data_tools import json_dumper, csv_dumper, plot_printer
 from ewm import ewm_weight
 from weight import *
 
@@ -25,7 +25,6 @@ class LabelPropagator:
         :param args: Arguments object.
         """
         print("[INIT]Initialization start")
-        self.args = args
         self.graph = graph
         # 处理自接节点
         for (u, v) in self.graph.edges:
@@ -34,11 +33,12 @@ class LabelPropagator:
         self.nodes = [node for node in graph.nodes()]
         self.labels = {node: node for node in self.nodes}
         self.degree = dict(self.graph.degree)
-        self.centrality = nx.eigenvector_centrality(self.graph)  # 节点特征向量中心性
+        # self.degree_centrality = nx.degree_centrality(self.graph)
+        self.eigenvector_centrality = nx.eigenvector_centrality(self.graph)  # 节点特征向量中心性
         # self.community: 真实社区划分
         # 若输入为football网络：参数改为value
         # [暂时不可用]若输入为LFR benchmark network: 参数改为community
-        self.community = nx.get_node_attributes(self.graph, "value")
+        # self.community = nx.get_node_attributes(self.graph, "value")
         self.max_round = args.rounds
         self.weight_setup(args.weighting)
         print("[INIT]Initialization done\n")
@@ -90,11 +90,12 @@ class LabelPropagator:
             if k_iterations[node] < p:
                 self.labels[node] = None
         # 使用熵权法计算影响力，倒序排序部分
-        weight = ewm_weight(k_iterations, self.degree, self.centrality)
+        # 综合影响力包含以下维度：k核迭代次数、节点度数（度中心性）、节点特征向量中心性
+        weight = ewm_weight(k_iterations, self.degree, self.eigenvector_centrality)
         result = []
         length = len(self.degree)
         for i in range(length):
-            inf = list(k_iterations.values())[i] * weight[0] + list(self.degree.values())[i] * weight[1] + list(self.centrality.values())[i] * weight[1]
+            inf = list(k_iterations.values())[i] * weight[0] + list(self.degree.values())[i] * weight[1] + list(self.eigenvector_centrality.values())[i] * weight[1]
             result.append(inf)
         sortres = list(dict(sorted(dict(zip(self.nodes, result)).items(), key=lambda x: x[1], reverse=True)).keys())
         self.nodes = sortres
@@ -221,11 +222,13 @@ class LabelPropagator:
             len(self.nodes), len(self.graph.edges), label_count, (lpa_end - lpa_start), iter_round))
         # print("Graph diameter: %d" % nx.diameter(self.graph))  # 返回图G的直径（最长最短路径的长度）
         # print("Graph average SP length: %f" % nx.average_shortest_path_length(self.graph))  # 返回图G所有节点间平均最短路径长度。
-        print("Graph average clustering: %f" % nx.average_clustering(self.graph))  # 平均群聚系数
+        avg_clustering = nx.average_clustering(self.graph)
+        print("Graph average clustering: %f" % avg_clustering)  # 平均群聚系数
         # node_clustering = nx.clustering(self.graph)  # 节点群聚系数
 
         # 模块度计算 Calculate modularity
-        print("Modularity: %f" % community_louvain.modularity(self.labels, self.graph))
+        mod = community_louvain.modularity(self.labels, self.graph)
+        print("Modularity: %f" % mod)
         # print(modularity(self.graph, self.labels)) # 循环计算法较慢，弃用
 
         # 绘图 Draw plot
@@ -233,7 +236,9 @@ class LabelPropagator:
         if choice == "y" or choice == "Y":
             plot_printer(self.graph, self.labels)
 
-        # 输出社区划分结果至JSON文件 Dump result
-        json_dumper(self.labels, self.args.output)
+        # 输出结果
+        json_dumper(self.labels)
+        csv_dumper(np.array([len(self.nodes), len(self.graph.edges), label_count, (lpa_end - lpa_start), iter_round,
+                             avg_clustering, mod]))
 
-        print("[FINISH]Finish running of Label propagation model")
+        print("\n[FINISH]Finish running of Label propagation model")
