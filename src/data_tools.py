@@ -1,6 +1,7 @@
 """Tools for data reading and writing."""
 
 import json
+import random
 import time
 
 import pandas as pd
@@ -64,7 +65,9 @@ def csv_dumper(data):
     :param data: 指标列表
     :param path: 保存路径
     """
-    np.savetxt("..\\output\\csv\\" + t + "_csv.csv", data, delimiter=',')
+    pd_data = pd.DataFrame(data).transpose()
+    t = time.strftime("%Y%m%d-%H%M%S", time.localtime())
+    pd_data.to_csv("..\\output\\csv\\" + t + "_csv.csv")
 
 
 def plot_printer(graph, labels):
@@ -92,6 +95,6 @@ def plot_printer(graph, labels):
         new_labels.update({key: merge_label})
     # nx.draw_networkx_labels(graph, layout, new_labels, font_size=8, font_color="r", font_weight="bold")
     # 导出：选择立即显示（show）或保存（savefig）
-    # plt.show()
-    plt.savefig("..\\output\\images\\" + t + "_figure.png")
+    plt.show()
+    # plt.savefig("..\\output\\images\\" + t + "_figure.png")
     # plt.close()

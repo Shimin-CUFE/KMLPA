@@ -2,9 +2,8 @@
 
 import argparse
 import os
-import sys
 
-project_path = os.path.abspath(os.path.dirname(os.path.dirname(sys.argv[0])))
+project_path = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
 
 def parameter_parser():
@@ -16,7 +15,7 @@ def parameter_parser():
 
     parser.add_argument("--input",
                         nargs="?",
-                        default=project_path + "\\data\\jianshu_v3.csv",
+                        default=project_path + "\\data\\facebook.csv",
                         help="Input graph path.")
 
     parser.add_argument("--weighting",

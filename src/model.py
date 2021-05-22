@@ -3,8 +3,10 @@
 import random
 import time
 
-import community as community_louvain
+from community import modularity
+import networkx as nx
 import numpy as np
+from sklearn.metrics import normalized_mutual_info_score, adjusted_rand_score
 
 from data_tools import json_dumper, csv_dumper, plot_printer
 from ewm import ewm_weight
@@ -35,10 +37,14 @@ class LabelPropagator:
         self.degree = dict(self.graph.degree)
         # self.degree_centrality = nx.degree_centrality(self.graph)
         self.eigenvector_centrality = nx.eigenvector_centrality(self.graph)  # 节点特征向量中心性
+        # self.info_centrality = nx.information_centrality(self.graph)
+        # self.per_centrality = nx.percolation_centrality(self.graph)
+        # self.voterank = nx.voterank(self.graph)
+
         # self.community: 真实社区划分
         # 若输入为football网络：参数改为value
         # [暂时不可用]若输入为LFR benchmark network: 参数改为community
-        # self.community = nx.get_node_attributes(self.graph, "value")
+        self.community = nx.get_node_attributes(self.graph, "community")
         self.max_round = args.rounds
         self.weight_setup(args.weighting)
         print("[INIT]Initialization done\n")
@@ -67,9 +73,20 @@ class LabelPropagator:
         """
         print("[PRE]Start pre-processing")
         # K核分解部分
+        # # K-shell
+        # graph_replica = self.graph.copy()
+        # k_dict = {node: 0 for node in self.nodes}
+        # while len(graph_replica.nodes) != 0:
+        #     nodes = list(graph_replica.nodes)
+        #     degrees = list(dict(graph_replica.degree).values())
+        #     for num in range(len(degrees)):
+        #         if degrees[num] == min(degrees):
+        #             graph_replica.remove_node(nodes[num])
+        #             k_dict[nodes[num]] = min(degrees)
+
         # k_iterations字典: {node: K核迭代次数}
         graph_replica = self.graph.copy()
-        k_iterations = {node: 0 for node in self.nodes}
+        k_dict = {node: 0 for node in self.nodes}
         iteration = 1
         while len(graph_replica.nodes) != 0:
             nodes = list(graph_replica.nodes)
@@ -77,25 +94,23 @@ class LabelPropagator:
             for num in range(len(degrees)):
                 if degrees[num] == min(degrees):
                     graph_replica.remove_node(nodes[num])
-                    k_iterations[nodes[num]] = iteration
+                    k_dict[nodes[num]] = iteration
             iteration += 1
+
         # 更新标签字典self.labels，给部分节点赋予初始标签
-        a = np.array(list(k_iterations.values()))
-        b = []
-        for i in a:
-            if i not in b:
-                b.append(i)
-        p = np.percentile(b, 25)  # [模型参数A]截取标签分位数
+        p = np.percentile(np.array(list(set(k_dict.values()))), 25)  # [模型参数A]截取标签分位数
         for node in self.nodes:
-            if k_iterations[node] < p:
+            if k_dict[node] < p:
                 self.labels[node] = None
+
         # 使用熵权法计算影响力，倒序排序部分
         # 综合影响力包含以下维度：k核迭代次数、节点度数（度中心性）、节点特征向量中心性
-        weight = ewm_weight(k_iterations, self.degree, self.eigenvector_centrality)
+        weight = ewm_weight(k_dict, self.degree, self.eigenvector_centrality)
         result = []
         length = len(self.degree)
         for i in range(length):
-            inf = list(k_iterations.values())[i] * weight[0] + list(self.degree.values())[i] * weight[1] + list(self.eigenvector_centrality.values())[i] * weight[1]
+            inf = list(k_dict.values())[i] * weight[0] + list(self.degree.values())[i] * weight[1] + \
+                  list(self.eigenvector_centrality.values())[i] * weight[2]
             result.append(inf)
         sortres = list(dict(sorted(dict(zip(self.nodes, result)).items(), key=lambda x: x[1], reverse=True)).keys())
         self.nodes = sortres
@@ -227,9 +242,14 @@ class LabelPropagator:
         # node_clustering = nx.clustering(self.graph)  # 节点群聚系数
 
         # 模块度计算 Calculate modularity
-        mod = community_louvain.modularity(self.labels, self.graph)
+        mod = modularity(self.labels, self.graph)
         print("Modularity: %f" % mod)
-        # print(modularity(self.graph, self.labels)) # 循环计算法较慢，弃用
+
+        # NMI and ARI
+        nmi = normalized_mutual_info_score(list(self.labels.values()), list(self.community.values()))
+        print("NMI: %f" % nmi)
+        ari = adjusted_rand_score(list(self.labels.values()), list(self.community.values()))
+        print("ARI: %f" % ari)
 
         # 绘图 Draw plot
         choice = input("[PLOT]Print plot? (y/n): ")
@@ -239,6 +259,6 @@ class LabelPropagator:
         # 输出结果
         json_dumper(self.labels)
         csv_dumper(np.array([len(self.nodes), len(self.graph.edges), label_count, (lpa_end - lpa_start), iter_round,
-                             avg_clustering, mod]))
+                             avg_clustering, mod, nmi, ari]))
 
         print("\n[FINISH]Finish running of Label propagation model")
